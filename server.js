@@ -243,7 +243,9 @@ app.get('/', (req, res, next) => {
       .replace('<meta property="og:description" content="Seven prompts. The rarer your answer, the deeper you sink. A daily word game.">', '<meta property="og:description" content="Tap to join the room, pick a name and race through the same prompts. The rarer your answer, the deeper you sink.">'));
   });
 });
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { // images can be cached for a week; the page and service worker always revalidate so updates show up straight away
+  setHeaders: (res, file) => res.setHeader('Cache-Control', /\.(png|jpe?g|webmanifest)$/.test(file) ? 'public, max-age=604800' : 'no-cache')
+}));
 
 const hits = new Map();
 const limited = (req, max) => { const k = req.ip + '|' + max + '|' + Math.floor(Date.now() / 60000); /* separate budget per endpoint */ const n = (hits.get(k) || 0) + 1; hits.set(k, n); if (hits.size > 5000) hits.clear(); return n > max; };
