@@ -540,7 +540,7 @@ const reactBar=()=>`<div class="reacts" role="group" aria-label="Send a reaction
 function floatReact(m){const el=document.createElement('div');el.className='rxf';el.style.left=(20+Math.random()*60)+'%';el.innerHTML=`<span>${m.e}</span><b>${esc(String(m.name).slice(0,16))}</b>`;
  el.addEventListener('animationend',()=>el.remove());document.body.appendChild(el);setTimeout(()=>el.remove(),3000)}
 function wireRoomExtras(){document.querySelectorAll('.rx').forEach(b=>b.onclick=()=>room&&room.react(b.dataset.e));
- document.querySelectorAll('.kick').forEach(b=>b.onclick=()=>{sheet(`<h2>Remove ${b.dataset.name}?</h2><p class="note" style="text-align:left">They'll leave the room and can't rejoin it.</p><button id="kYes">Remove</button><button id="kNo" class="alt">Cancel</button>`);
+ document.querySelectorAll('.kick').forEach(b=>b.onclick=()=>{sheet(`<h2>Remove ${esc(b.dataset.name)}?</h2><p class="note" style="text-align:left">They'll leave the room and can't rejoin it.</p><button id="kYes">Remove</button><button id="kNo" class="alt">Cancel</button>`);
   $('kYes').onclick=()=>{room&&room.kick(b.dataset.id);closeSheet()};$('kNo').onclick=()=>closeSheet()})}
 function everyone(v){if(!room||!room.prompts)return'';const rows=room.prompts.map((q,i)=>{const a=v.map(p=>{const x=(p.presence.ans||[])[i];return x?`<span class="oa">${av(p.presence.name)}<b>${esc(String(p.presence.name).slice(0,12))}</b> ${x[0]?esc(x[0]):'<em>no answer</em>'} <i>+${x[1]}</i>${x[2]?' <i class="kb">Krillion</i>':''}</span>`:''}).join('');
   return a?`<li><span><small>${esc(q)}</small>${a}</span></li>`:''}).join('');
@@ -665,11 +665,11 @@ async function end(){timerStop();AU.end();
  if(o.daily)DAILY={...(DAILY||{}),num:G.num,done:true,total:G.tot,log:G.log,prompts:o.qs}}
 /* ---------- leaderboard ---------- */
 let lbTok=0,lbData=null,lbIv=null;
-const lbRows=rows=>rows.map((r,i)=>rankRow({name:r.name,v:r.v,me:r.id===UID.slice(0,6),key:r.id+':'+r.v},i)).join('')||'<li class="empty"><span>No scores yet. Finish a daily dive to get on the board.</span></li>';
+const lbRows=rows=>rows.map((r,i)=>rankRow({name:r.name,v:r.v,me:r.id===MYID,key:r.id+':'+r.v},i)).join('')||'<li class="empty"><span>No scores yet. Finish a daily dive to get on the board.</span></li>';
 function fillLb(animate){const ul=$('lbl');if(!ul)return;const rows=lbData?lbData[tab]||[]:null;
  const before=new Set([...ul.children].map(l=>l.dataset.k).filter(Boolean));
  ul.innerHTML=rows?lbRows(rows):'<li class="empty"><span>Couldn\'t load scores. Check your connection.</span></li>';
- if(rows&&!rows.some(r=>r.id===UID.slice(0,6))){const t=tab;api('/api/rank',{uid:UID}).then(m=>{const x=m&&m[t],l=$('lbl');if(!x||!l||tab!==t||l.querySelector('.mine'))return;
+ if(rows&&!rows.some(r=>r.id===MYID)){const t=tab;api('/api/rank',{uid:UID}).then(m=>{const x=m&&m[t],l=$('lbl');if(!x||!l||tab!==t||l.querySelector('.mine'))return;
   l.insertAdjacentHTML('beforeend','<li class="gap" aria-hidden="true">···</li>'+rankRow({name:nick||'You',v:x.v,me:true},x.rank-1).replace('class="lr me"','class="lr me mine"'))}).catch(()=>{})}
  const pd=$('lbpod');if(pd){const t=(rows||[]).slice(0,3).map(r=>({name:r.name,v:r.v})),sig=JSON.stringify(t);if(pd.dataset.sig!==sig){pd.dataset.sig=sig;pd.innerHTML=t.length?podium(t):'';if(animate||t.length)pd.classList.remove('grow'),void pd.offsetWidth,pd.classList.add('grow')}}
  if(animate)listIn(ul);else if(before.size){let hit=0;for(const l of ul.children)if(l.dataset.k&&!before.has(l.dataset.k)){l.classList.add('hit');hit=1}if(hit)AU.plink(4)}}
@@ -764,6 +764,8 @@ function world(k){const w=$('world'),sp=w.offsetHeight*5.2;
 const cookieUid=(document.cookie.match(/(?:^|; )dd_uid=([^;]*)/)||[])[1]||'';
 let UID='';try{UID=localStorage.getItem('dd_uid')||decodeURIComponent(cookieUid);if(!UID)UID=crypto.randomUUID();localStorage.setItem('dd_uid',UID)}catch(e){UID=decodeURIComponent(cookieUid)||String(Math.random()).slice(2)+Date.now()}
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+// your leaderboard fingerprint (the server sends the same one-way hash, never your id)
+let MYID='';(async()=>{try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('deepdive:'+UID));MYID=[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('').slice(0,12);if(document.body.dataset.s==='lb')fillLb(false)}catch(e){}})();
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let waking=false;
 async function api(url,body){ // shows a "waking up" notice if the free server is asleep (first request after a quiet spell)

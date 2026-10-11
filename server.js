@@ -250,11 +250,16 @@ app.use(express.static(path.join(__dirname, 'public'), { // images can be cached
 const hits = new Map();
 const limited = (req, max) => { const k = req.ip + '|' + max + '|' + Math.floor(Date.now() / 60000); /* separate budget per endpoint */ const n = (hits.get(k) || 0) + 1; hits.set(k, n); if (hits.size > 5000) hits.clear(); return n > max; };
 
+// malformed or oversized requests get a short JSON error (never a stack trace)
+app.use((err, req, res, next) => { if (!err) return next(); res.status(err.status || 400).json({ error: err.type === 'entity.too.large' ? 'too large' : 'bad request' }); });
+
 app.get('/api/health', (_, res) => res.json({ ok: true, ai: KEY ? 'anthropic' : GKEY ? 'gemini' : false, questions: QUESTIONS.length, generated: GENERATED.length }));
 
+// leaderboard rows carry a one-way fingerprint of the player id: unique enough to spot yourself, reveals nothing about the id itself
+const pubIds = new Map(), publicId = uid => { let v = pubIds.get(uid); if (!v) { v = crypto.createHash('sha256').update('deepdive:' + uid).digest('hex').slice(0, 12); pubIds.set(uid, v); } return v; };
 app.get('/api/leaderboard', (_, res) => {
   res.set('Cache-Control', 'no-store'); // every device polls this for live updates
-  const d = today(), rows = Object.entries(scores).map(([uid, s]) => ({ id: uid.slice(0, 6), name: s.name, best: s.best, dayBest: s.day === d ? s.dayBest : 0 }));
+  const d = today(), rows = Object.entries(scores).map(([uid, s]) => ({ id: publicId(uid), name: s.name, best: s.best, dayBest: s.day === d ? s.dayBest : 0 }));
   const top = k => rows.filter(r => r[k] > 0).sort((a, b) => b[k] - a[k]).slice(0, 10).map(r => ({ id: r.id, name: r.name, v: r[k] }));
   res.json({ all: top('best'), day: top('dayBest'), v: scoresVersion });
 });
@@ -424,6 +429,10 @@ wss.on('connection', ws => {
   ws.on('pong', () => { ws.alive = true; });
   ws.on('message', raw => {
     let m; try { m = JSON.parse(raw); } catch { return; }
+    if (!m || typeof m !== 'object' || typeof m.t !== 'string') return; // ignore anything that isn't a proper message
+    try { handle(m); } catch (e) { console.error('room message failed:', e.message); }
+  });
+  function handle(m) {
     if (m.t === 'join' && !p) {
       let code = clean(m.code, 4).toUpperCase(), create = !!m.create;
       const seat = clean(m.seat, 40);
@@ -448,6 +457,7 @@ wss.on('connection', ws => {
       pushState(room);
     } else if (m.t === 'start' && p?.room && p.host) {
       const room = p.room;
+      if (room.go && Date.now() - room.go < 6000) return pushState(room); // a round just started: ignore double taps during the countdown
       if ([...room.players.values()].some(x => x.ws && x.q > 0 && !x.done)) return pushState(room); // round still running
       room.go = Date.now(); room.prompts = pick(room.n, room.cat);
       for (const x of room.players.values()) enroll(room, x);
@@ -465,9 +475,14 @@ wss.on('connection', ws => {
       const x = p.room.players.get(String(m.id)); if (!x) return;
       p.room.banned.add(x.seat); send(x.ws, { t: 'err', msg: 'removed' }); x.ws?.close(); x.ws = null; removePlayer(x);
     } else if (m.t === 'leave' && p) { removePlayer(p); p = null; }
-  });
+  }
+  ws.on('error', e => console.error('socket error:', e.message)); // e.g. an oversized message; without a listener this would crash the server
   ws.on('close', () => { if (p && p.ws === ws) dropConnection(p); });
 });
 setInterval(() => { for (const ws of wss.clients) { if (!ws.alive) { ws.terminate(); continue; } ws.alive = false; ws.ping(); } }, 20000); // heartbeat: notice dead phones
+
+// last line of defence: log unexpected errors instead of taking every room and game down with the process
+process.on('uncaughtException', e => console.error('uncaught:', e));
+process.on('unhandledRejection', e => console.error('unhandled rejection:', e));
 
 server.listen(PORT, () => console.log(`Deepdive on :${PORT} (AI judging ${KEY ? 'Anthropic' : GKEY ? 'Gemini' : 'OFF - set GEMINI_API_KEY or ANTHROPIC_API_KEY'}, ${QUESTIONS.length} + ${GENERATED.length} generated questions, scores in ${db ? 'Postgres' : DATA_DIR}, ${Object.keys(scores).length} players)`));
