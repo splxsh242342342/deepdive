@@ -246,6 +246,30 @@ ul.res{margin-top:8px}
 .box-in .pb{animation:grow .6s var(--ease-out) both;animation-delay:calc(200ms + var(--d,0)*100ms)}
 @keyframes grow{from{transform:scaleY(0)}}
 
+/* home links, stats, yesterday, reveal, report */
+.links{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 18px;margin-top:12px}
+button.lnk,button.lnk:hover{display:inline-block;width:auto;min-height:40px;margin:0;padding:6px 2px;background:none!important;border:0;box-shadow:none!important;color:var(--mut);font-size:15px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+@media(hover:hover){button.lnk:hover{color:var(--aqua)}}
+details.how{margin-top:2px}
+.st6{grid-template-columns:repeat(3,1fr);margin-bottom:6px}
+.stats div.sk{min-height:62px;background:linear-gradient(90deg,#ffffff08 30%,#ffffff14 50%,#ffffff08 70%) 0 0/300% 100%;animation:shim 1.4s linear infinite}
+.yd li{display:block;padding:12px 4px}.yd li>span{display:block;white-space:normal;overflow:visible;color:var(--foam)!important;line-height:1.45}
+.yd small{display:block;color:var(--mut);font-size:13px;margin-bottom:2px}.yd em{color:var(--aqua);font-style:normal}
+.rare{display:block;margin-top:3px;font-size:13px;color:var(--violet)}
+.rvl{display:block;margin-top:3px;font-size:12.5px;font-weight:400;color:var(--mut);opacity:0;transition:opacity .6s var(--ease-out)}.rvl.on{opacity:1}.rvl b{color:var(--aqua)}
+li.gap{justify-content:center;padding:0;border:0;color:var(--mut);letter-spacing:.3em}
+button.flag,button.flag:hover{display:block;width:auto;min-height:32px;margin:10px auto 0;padding:4px 8px;background:none!important;border:0;box-shadow:none!important;color:var(--mut);font-size:12.5px;font-weight:500;text-decoration:underline;text-underline-offset:3px;opacity:.75}
+/* sheets: settings and the first-time guide */
+.sheet{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:#020814b3;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .25s var(--ease-out)}
+.sheet.on{opacity:1}
+.sheet-card{width:100%;max-width:400px;max-height:calc(100dvh - 32px);overflow:auto;padding:22px 18px;border-radius:18px;background:#0a1730;border:1px solid var(--edge);box-shadow:0 30px 80px -20px #000;transform:translateY(12px);transition:transform .3s var(--ease-out)}
+.sheet.on .sheet-card{transform:none}
+.sheet-card h2{margin:0 0 14px;font-size:21px;letter-spacing:-.015em}
+.fld{display:block;margin-bottom:14px}.fld>span{display:block;margin-bottom:6px;font-size:14px;font-weight:600;color:var(--mut)}
+.fld input[type=range]{width:100%;padding:0;border:0;background:none;box-shadow:none;accent-color:var(--aqua)}
+.tgl{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:15px;cursor:pointer}
+.tgl input{flex:none;width:20px;height:20px;margin:0;padding:0;accent-color:var(--aqua)}
+.tut{margin:0 0 16px;padding-left:20px;line-height:1.5}.tut li{display:list-item;padding:6px 0;border:0;font-size:15px}
 /* question-count picker */
 .sz{margin:16px 0 4px;text-align:center}.sz>span{display:block;margin-bottom:8px;font-size:14px;font-weight:600;color:var(--mut)}
 .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
@@ -285,7 +309,7 @@ li.hit{animation:hit 2.4s var(--ease-out)}@keyframes hit{0%,30%{background:#6ff7
 }
 @media(max-height:640px) and (max-width:520px){.hero{width:84px;height:126px}.tag{margin-bottom:16px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#count.on{opacity:1}}
-</style></head><body><div id="sea"></div><div id="deep"></div><div id="world" aria-hidden="true"><div id="snowF"></div><div id="scene"></div><div id="snowN"></div></div><div id="swim" aria-hidden="true"></div><div id="bub"></div><div id="rays"></div><div id="rail"><span id="mk2"></span></div><div id="zb"></div><div id="count"></div><div id="flash"></div><div id="net" role="status">Reconnecting…</div><div class="au-ctl"><button class="au" id="sndB" aria-label="Sound effects"></button><button class="au" id="musB" aria-label="Background music"></button></div><main>
+</style></head><body><div id="sea"></div><div id="deep"></div><div id="world" aria-hidden="true"><div id="snowF"></div><div id="scene"></div><div id="snowN"></div></div><div id="swim" aria-hidden="true"></div><div id="bub"></div><div id="rays"></div><div id="rail"><span id="mk2"></span></div><div id="zb"></div><div id="count"></div><div id="flash"></div><div id="net" role="status">Reconnecting…</div><div class="au-ctl"><button class="au" id="sndB" aria-label="Sound effects"></button><button class="au" id="musB" aria-label="Background music"></button><button class="au" id="setB" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div><main>
 <header><h1>Deepdive</h1><span class="krill"></span><div class="sub">Seven prompts. Rare answers sink you deeper.</div></header>
 <div class="hud"><span id="pm"></span><div class="bar"><i id="bar"><i id="barf"><i id="barg"></i></i></i><b data-k="0.1714" style="left:17.14%"></b><b data-k="0.3429" style="left:34.29%"></b><b data-k="0.5143" style="left:51.43%"></b><b data-k="0.6857" style="left:68.57%"></b><b data-k="0.8571" style="left:85.71%"></b><b data-k="0.9714" style="left:97.14%"></b><span class="cap" id="cap"></span></div>
 <div class="meta"><span id="zone">Surface</span><span id="depth">0 m</span></div></div>
@@ -324,10 +348,13 @@ function pick(seed){const r=rng(hash(seed)),a=[...POOL.keys()];for(let i=a.lengt
 /* ---------- screens ---------- */
 function scr(n){document.body.dataset.s=n}
 const RMQ=matchMedia('(prefers-reduced-motion: reduce)');
+/* ---------- preferences ---------- */
+const PREF=(()=>{let p={};try{p=JSON.parse(localStorage.getItem('dd_prefs')||'{}')}catch(e){}
+ return{get:(k,d)=>k in p?p[k]:d,set:(k,v)=>{p[k]=v;try{localStorage.setItem('dd_prefs',JSON.stringify(p))}catch(e){}}}})();
 /* ---------- sound: everything is synthesised with Web Audio, no files ---------- */
 const AU=(()=>{let lastKey=0,ctx=null,sfx,mus,verb,musTimer=null,dropTimer=null,voices=[],chordI=0,unlocked=false;
  let soundOn=true,musicOn=true;try{soundOn=localStorage.getItem('dd_snd')!=='0';musicOn=localStorage.getItem('dd_mus')!=='0'}catch(e){}
- const MUSIC_VOL=.075,SFX_VOL=.5;
+ let MUSIC_VOL=.075*PREF.get('mv',1),SFX_VOL=.5*PREF.get('sv',1);
  function init(){if(ctx)return ctx;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;ctx=new AC();
   const master=ctx.createGain(),comp=ctx.createDynamicsCompressor();comp.threshold.value=-20;comp.ratio.value=4;master.connect(comp).connect(ctx.destination);
   verb=ctx.createConvolver();const r=ctx.sampleRate,len=r*4,b=ctx.createBuffer(2,len,r);
@@ -362,6 +389,7 @@ const AU=(()=>{let lastKey=0,ctx=null,sfx,mus,verb,musTimer=null,dropTimer=null,
  return{
   get sound(){return soundOn},get music(){return musicOn},
   setSound(on){soundOn=on;try{localStorage.setItem('dd_snd',on?'1':'0')}catch(e){}if(sfx)sfx.gain.setTargetAtTime(on?SFX_VOL:0,now(),.05)},
+  setVols(sv,mv){SFX_VOL=.5*sv;MUSIC_VOL=.075*mv;if(sfx&&soundOn)sfx.gain.setTargetAtTime(SFX_VOL,now(),.05);if(mus&&musTimer)mus.gain.setTargetAtTime(MUSIC_VOL,now(),.3)},
   setMusic(on){musicOn=on;try{localStorage.setItem('dd_mus',on?'1':'0')}catch(e){}unlock();on?startMusic():stopMusic()},
   tap(){if(ok())tone(1320,now(),.07,{v:.035})},
   bloop(){if(ok())tone(260,now(),.22,{to:620,glide:.12,v:.18})},
@@ -404,9 +432,11 @@ const nextDaily=()=>{const n=new Date();return Date.UTC(n.getUTCFullYear(),n.get
 const hms=ms=>{const s=Math.max(0,Math.floor(ms/1000));return[s/3600|0,(s/60|0)%60,s%60].map(x=>String(x).padStart(2,'0')).join(':')};
 let DAILY=null,clockIv=null;
 function clock(el){clearInterval(clockIv);const f=()=>{if(!document.body.contains(el)){clearInterval(clockIv);return}el.textContent=hms(nextDaily()-Date.now())};f();clockIv=setInterval(f,1000)}
-const dsText=d=>d&&d.done?'Done · '+d.total+' m · see result':'Same seven prompts for everyone today';
+let ME=null;
+const dsText=d=>(d&&d.done?'Done · '+d.total+' m · see result':'Same seven prompts for everyone today')+(ME&&ME.streak?` · ${ME.streak}-day streak`:'');
 function home(){leave();timerStop();setTimeout(()=>{notice=''},0);G=null;shown=0;hud();$('rm').innerHTML='';scr('home');
- paint(`<div class="home"><div class="hero" title="Boop">${JF}</div><h1 class="logo">Deepdive</h1><p class="tag">Seven prompts. The rarer your answer, the deeper you sink.</p>${notice?`<p class="notice" role="status">${esc(notice)}</p>`:''}<input id="nk" class="nick" maxlength="16" placeholder="Your nickname" aria-label="Your nickname" autocomplete="nickname" value="${esc(nick)}"><button id="solo" class="daily"><span class="dl">Daily dive${DAILY?' #'+DAILY.num:''}</span><span class="ds" id="ds">${dsText(DAILY)}</span></button><div class="row2"><button id="pr" class="alt">Practice</button><button id="mp" class="alt">Multiplayer</button></div><button id="lbb" class="alt">Leaderboard</button><details class="how"><summary>How to play</summary><p>Answer each prompt with the first real thing that comes to mind. Common answers barely count. Rare but genuine answers sink you deeper. Give an answer nobody has ever given and you get a Krillion.</p></details></div>`,true);
+ paint(`<div class="home"><div class="hero" title="Boop">${JF}</div><h1 class="logo">Deepdive</h1><p class="tag">Seven prompts. The rarer your answer, the deeper you sink.</p>${notice?`<p class="notice" role="status">${esc(notice)}</p>`:''}<input id="nk" class="nick" maxlength="16" placeholder="Your nickname" aria-label="Your nickname" autocomplete="nickname" value="${esc(nick)}"><button id="solo" class="daily"><span class="dl">Daily dive${DAILY?' #'+DAILY.num:''}</span><span class="ds" id="ds">${dsText(DAILY)}</span></button><div class="row2"><button id="pr" class="alt">Practice</button><button id="mp" class="alt">Multiplayer</button></div><button id="lbb" class="alt">Leaderboard</button><div class="links"><button class="lnk" id="stB">Your stats</button><button class="lnk" id="ydB">Yesterday's answers</button></div><details class="how"><summary>How to play</summary><p>Answer each prompt with the first real thing that comes to mind. Common answers barely count. Rare but genuine answers sink you deeper. Give an answer nobody has ever given and you get a Krillion.</p></details></div>`,true);
+ api('/api/me',{uid:UID}).then(m=>{ME=m;const ds=$('ds');if(ds)ds.textContent=dsText(DAILY)}).catch(()=>{});
  api('/api/daily',{uid:UID}).then(d=>{DAILY=d;const b=$('solo');if(!b||b.disabled)return;b.querySelector('.dl').textContent='Daily dive #'+d.num;$('ds').textContent=dsText(d)}).catch(()=>{});
  const play=async(mode,b)=>{if(b.disabled)return;name();load(b,true);
   try{const r=await api('/api/game',{uid:UID,name:nick,mode});
@@ -414,8 +444,23 @@ function home(){leave();timerStop();setTimeout(()=>{notice=''},0);G=null;shown=0
    nav(()=>start(r.prompts.map(q=>({q})),r.gameId,{mode,num:r.num,time:r.time,resume:r.resume}))}
   catch(e){load(b,false);(b.querySelector('.ds')||b).textContent='Server unavailable, try again'}};
  const hero=document.querySelector('.hero');if(hero)hero.onclick=()=>{hero.classList.remove('zap');void hero.offsetWidth;hero.classList.add('zap');AU.jelly()};
- $('solo').onclick=()=>play('daily',$('solo'));$('pr').onclick=()=>play('practice',$('pr'));
+ const guided=(mode,b)=>{if(PREF.get('tut',false))return play(mode,b); // first time only: a short "how it works"
+  sheet(`<h2>How it works</h2><ol class="tut"><li><b>Name a real thing</b> for each prompt before the timer runs out.</li><li><b>Rare beats common.</b> Answers few people think of sink you deeper.</li><li><b>Never been said before?</b> That's a Krillion, the rarest find of all.</li></ol><button id="tGo">Start diving</button>`);
+  $('tGo').onclick=()=>{PREF.set('tut',true);closeSheet();play(mode,b)}};
+ $('solo').onclick=()=>guided('daily',$('solo'));$('pr').onclick=()=>guided('practice',$('pr'));
+ $('stB').onclick=()=>nav(statsScreen);$('ydB').onclick=()=>nav(yesterdayScreen);
  $('mp').onclick=()=>{name();nav(mpHub)};$('lbb').onclick=()=>{name();nav(lbScreen)}}
+async function statsScreen(){scr('stats');$('rm').innerHTML='';
+ paint(`<div class="q"><h2>Your stats</h2><p class="note" style="margin:-8px 0 14px">From your daily dives on this device.</p><div class="stats st6" id="stg">${'<div class="sk"></div>'.repeat(6)}</div><button class="alt" id="bk">Back</button></div>`,true);
+ $('bk').onclick=()=>nav(home);let m=null;try{m=await api('/api/me',{uid:UID});ME=m}catch(e){}const g=$('stg');if(!g)return;
+ if(!m){g.outerHTML="<p class=\"note\">Couldn't load your stats. Check your connection.</p>";return}
+ g.innerHTML=[[m.streak,'Day streak'],[m.bestStreak,'Best streak'],[m.games,'Dives'],[m.best+' m','Best depth'],[m.avg+' m','Average'],[m.krills,'Krillions']].map(([v,l])=>`<div><b>${v}</b><span>${l}</span></div>`).join('')}
+async function yesterdayScreen(){scr('yd');$('rm').innerHTML='';
+ paint(`<div class="q left"><h2>Yesterday's answers</h2><p class="note" id="ydn" style="margin:-8px 0 6px">Loading…</p><ul class="yd" id="ydl"></ul><button class="alt" id="bk">Back</button></div>`,true);
+ $('bk').onclick=()=>nav(home);let y=null;try{y=await(await fetch('/api/yesterday',{cache:'no-store'})).json()}catch(e){}const ul=$('ydl');if(!ul)return;
+ if(!y){$('ydn').textContent="Couldn't load yesterday's answers.";return}
+ $('ydn').textContent=`Daily dive #${y.num}: the most common answers and the rare finds.`;
+ ul.innerHTML=y.prompts.map(p=>`<li><span><small>${esc(p.q)}</small>${p.n?p.top.map(t=>`${esc(t.label)} <em>${t.pct}%</em>`).join(' · '):'<em>Nobody answered this one.</em>'}${p.rare.length?`<span class="rare">Rare finds: ${p.rare.map(esc).join(', ')}</span>`:''}</span></li>`).join('');listIn(ul)}
 function invite(code){scr('mp');$('rm').innerHTML=''; // opened from an invite link
  paint(`<div class="q"><small>You're invited</small><h2>Join room ${esc(code)}</h2><p class="note" style="margin:-8px 0 16px">Pick a name so your friends know it's you.</p><input id="nk" maxlength="16" placeholder="Your name" aria-label="Your name" autocomplete="nickname" value="${esc(nick)}"><button id="jn">Join room</button><div class="note" id="mn" aria-live="polite"></div><button class="alt" id="bk">Not now</button></div>`,true);
  const go=()=>{name();joinRoom(code,false)};$('jn').onclick=go;$('nk').onkeydown=e=>{if(e.key==='Enter')go()};$('bk').onclick=()=>nav(home);
@@ -493,7 +538,7 @@ function drawResults(enter){$('rm').innerHTML='';const v=viewers().sort((a,b)=>(
  ${isHost()?`${pend?'':sizePicker()}<button id="rm2" ${pend?'disabled':''}>Rematch</button>`:'<div class="note">The host can start a rematch.</div>'}<button class="alt" id="lv">Leave room</button></div>`,enter);
  wireSize();if(isHost())$('rm2').onclick=()=>{load($('rm2'),true);room.presence({go:Date.now()})};
  $('lv').onclick=()=>nav(home)}
-function start(qs,gid,o={}){scr('game');G={qs,gid,i:0,tot:0,log:[],mode:o.mode||'room',num:o.num,TL:(o.time||20)*1000};shown=0;
+function start(qs,gid,o={}){scr('game');G={qs,gid,i:0,tot:0,log:[],mode:o.mode||'room',num:o.num,TL:((o.time||20)+(o.mode&&o.mode!=='room'&&PREF.get('slow',false)?10:0))*1000};shown=0;
  if(o.resume){G.i=o.resume.i;G.tot=o.resume.total;G.log=o.resume.log}hud();G.i<G.qs.length?show():end()}
 /* prompt timer: one linear transform transition drains the bar; it pauses while the answer is checked */
 let T=null;
@@ -513,8 +558,8 @@ async function timeUp(){timerStop();const inp=$('a'),btn=$('go');if(!inp||busy)r
  $('fb').innerHTML='<div class="pop"><span class="err">Time\'s up</span> <b>+0 m</b></div>';
  btn.textContent=G.i<G.qs.length-1?'Next':'See result';btn.focus({preventScroll:true});btn.onclick=()=>nav(()=>{G.i++;G.i<G.qs.length?show():end()})}
 function show(){const p=G.qs[G.i];
- paint(`<div class="q"><small>Prompt ${G.i+1} of ${G.qs.length}</small><div class="pips" aria-hidden="true">${G.qs.map((_,n)=>`<i class="${n<G.i?'d':n===G.i?'c':''}"></i>`).join('')}</div><div class="tw" id="tw"><div class="tt"><i id="tb"><i id="tbg"></i></i></div><span class="tp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg><span id="tn">${G.TL/1000}s</span></span></div><h2 id="qh">${esc(p.q)}</h2><input id="a" aria-labelledby="qh" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" placeholder="Your answer"><button id="go">Dive</button><div class="fb" id="fb" aria-live="polite"></div></div>`,true);
- const inp=$('a');inp.focus({preventScroll:true});setTimeout(()=>inp.scrollIntoView({block:'center',behavior:RMQ.matches?'auto':'smooth'}),250);inp.onkeydown=e=>{if(e.key==='Enter')go()};inp.oninput=()=>AU.key();$('go').onclick=go;timerStart(G.TL)}
+ paint(`<div class="q"><small>Prompt ${G.i+1} of ${G.qs.length}</small><div class="pips" aria-hidden="true">${G.qs.map((_,n)=>`<i class="${n<G.i?'d':n===G.i?'c':''}"></i>`).join('')}</div><div class="tw" id="tw"><div class="tt"><i id="tb"><i id="tbg"></i></i></div><span class="tp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg><span id="tn">${G.TL/1000}s</span></span></div><h2 id="qh">${esc(p.q)}</h2><input id="a" aria-labelledby="qh" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" placeholder="Your answer"><button id="go">Dive</button><div class="fb" id="fb" aria-live="polite"></div><button class="flag" id="flag" type="button">Report this question</button></div>`,true);
+ const inp=$('a');inp.focus({preventScroll:true});setTimeout(()=>inp.scrollIntoView({block:'center',behavior:RMQ.matches?'auto':'smooth'}),250);inp.onkeydown=e=>{if(e.key==='Enter')go()};inp.oninput=()=>AU.key();$('flag').onclick=async()=>{const f=$('flag');f.disabled=true;try{await api('/api/report',{prompt:p.q});f.textContent="Thanks, we'll take a look"}catch(e){f.textContent="Couldn't send that";f.disabled=false}};$('go').onclick=go;timerStart(G.TL)}
 function shake(){once($('a'),'miss')}
 function celebrate(r){const card=$('fb').closest('.q');once(card,r.krill?'winK':'win');buzz(r.krill?[15,40,15]:10);r.krill?AU.krill():AU.correct(r.rarity)}
 function gain(pts){if(RMQ.matches)return;const g=document.createElement('span');g.className='gain';g.textContent='+'+pts+' m';g.addEventListener('animationend',()=>g.remove());document.querySelector('.meta').appendChild(g)}
@@ -534,13 +579,16 @@ async function go(){if(busy||!T)return;const inp=$('a'),btn=$('go'),v=inp.value.
 async function saveScore(t){try{const r=await api('/api/finish',{gameId:G.gid});return r.message}catch(e){return'Could not post score.'}}
 const sq=log=>log.map(l=>!l[0]?'⬛':l[3]?'🟨':l[2]>=80?'🟪':l[2]>=50?'🟦':'⬜').join('');
 function result(o){const{tot,log,qs,num,daily}=o;
- return `<div class="q"><small>${daily?'Daily dive #'+num:'You reached'}</small><div class="big" id="bt">0 m</div><p class="end-zone">${zone(tot)}</p><div class="stats"><div><b>${rank(tot)}</b><span>Rank</span></div><div><b>${log.filter(l=>l[3]).length}</b><span>Krillions</span></div><div><b>${log.filter(l=>l[0]).length}/${log.length}</b><span>Answered</span></div></div><h3 class="lh">Your answers</h3><ul class="res">${log.map((l,n)=>`<li class="${l[3]?'k':''}"><span><small>${esc(String(qs[n]))}</small>${l[0]?esc(l[0]):'<em>Time ran out</em>'}${l[3]?' <i class="kb">Krillion</i>':''}</span><span class="pts">${l[1]?"+"+l[1]:0} m</span></li>`).join('')}</ul><div class="sq" aria-hidden="true">${sq(log)}</div>${daily?`<div class="note">Next dive in <b id="nx">--:--:--</b></div>`:''}<div class="note" id="sv">${o.saved||'Posting score…'}</div><button id="sh">Copy result</button><button id="re" class="alt">Back to menu</button></div>`}
+ return `<div class="q"><small>${daily?'Daily dive #'+num:'You reached'}</small><div class="big" id="bt">0 m</div><p class="end-zone">${zone(tot)}</p><div class="stats"><div><b>${rank(tot)}</b><span>Rank</span></div><div><b>${log.filter(l=>l[3]).length}</b><span>Krillions</span></div><div><b>${log.filter(l=>l[0]).length}/${log.length}</b><span>Answered</span></div></div><h3 class="lh">Your answers</h3><ul class="res">${log.map((l,n)=>`<li class="${l[3]?'k':''}"><span><small>${esc(String(qs[n]))}</small>${l[0]?esc(l[0]):'<em>Time ran out</em>'}${l[3]?' <i class="kb">Krillion</i>':''}${daily?`<span class="rvl" data-i="${n}"></span>`:''}</span><span class="pts">${l[1]?"+"+l[1]:0} m</span></li>`).join('')}</ul><div class="sq" aria-hidden="true">${sq(log)}</div>${daily?`<div class="note">Next dive in <b id="nx">--:--:--</b></div>`:''}<div class="note" id="sv">${o.saved||'Posting score…'}</div><button id="sh">Copy result</button><button id="re" class="alt">Back to menu</button></div>`}
 function wireResult(o){tween(0,o.tot,$('bt'),' m');AU.roll(16,1.1);
  o.log.forEach((l,i)=>setTimeout(()=>{if($('bt'))AU.plink(i,l[3])},1150+i*110));
  setTimeout(()=>once($('bt'),'bump'),1100);if($('nx'))clock($('nx'));
  const share=`${o.daily?'Deepdive #'+o.num:'Deepdive practice'} · ${o.tot} m · ${rank(o.tot)}\n${sq(o.log)}\n${location.host}`;
  $('sh').onclick=()=>{try{navigator.clipboard.writeText(share);$('sh').textContent='Copied'}catch(e){$('sh').textContent='Copy failed'}};
- $('re').onclick=()=>nav(home)}
+ $('re').onclick=()=>nav(home);if(o.daily)setTimeout(reveal,1500)}
+async function reveal(){let r=null;try{r=await api('/api/reveal',{uid:UID})}catch(e){return}
+ document.querySelectorAll('.rvl').forEach(el=>{const p=r.prompts[+el.dataset.i];if(!p||!p.n)return;
+  el.innerHTML=`${p.you!=null?`<b>${p.you}%</b> said this · `:''}Top: ${p.top.map(t=>`${esc(t.label)} ${t.pct}%`).join(', ')}`;el.classList.add('on')})}
 function dailyDone(d){scr('done');G=null;const o={tot:d.total,log:d.log,qs:d.prompts,num:d.num,daily:true,saved:'You have already dived today.'};
  paint(result(o),true);wireResult(o)}
 async function end(){timerStop();AU.end();
@@ -555,6 +603,8 @@ const lbRows=rows=>rows.map((r,i)=>rankRow({name:r.name,v:r.v,me:r.id===UID.slic
 function fillLb(animate){const ul=$('lbl');if(!ul)return;const rows=lbData?lbData[tab]||[]:null;
  const before=new Set([...ul.children].map(l=>l.dataset.k).filter(Boolean));
  ul.innerHTML=rows?lbRows(rows):'<li class="empty"><span>Couldn\'t load scores. Check your connection.</span></li>';
+ if(rows&&!rows.some(r=>r.id===UID.slice(0,6))){const t=tab;api('/api/rank',{uid:UID}).then(m=>{const x=m&&m[t],l=$('lbl');if(!x||!l||tab!==t||l.querySelector('.mine'))return;
+  l.insertAdjacentHTML('beforeend','<li class="gap" aria-hidden="true">···</li>'+rankRow({name:nick||'You',v:x.v,me:true},x.rank-1).replace('class="lr me"','class="lr me mine"'))}).catch(()=>{})}
  const pd=$('lbpod');if(pd){const t=(rows||[]).slice(0,3).map(r=>({name:r.name,v:r.v})),sig=JSON.stringify(t);if(pd.dataset.sig!==sig){pd.dataset.sig=sig;pd.innerHTML=t.length?podium(t):'';if(animate||t.length)pd.classList.remove('grow'),void pd.offsetWidth,pd.classList.add('grow')}}
  if(animate)listIn(ul);else if(before.size){let hit=0;for(const l of ul.children)if(l.dataset.k&&!before.has(l.dataset.k)){l.classList.add('hit');hit=1}if(hit)AU.plink(4)}}
 async function lbScreen(enter=true){scr('lb');$('rm').innerHTML='';const tok=++lbTok;
@@ -588,7 +638,7 @@ $('mk2').innerHTML=JF;$('pm').innerHTML=JF;document.querySelector('.krill').inne
   ray:{w:[60,90],face:1,dur:[36,54],svg:'<svg viewBox="0 0 60 40"><path d="M58 20C50 14 44 4 34 2 30 12 26 16 18 18L0 20l18 2c8 2 12 6 16 16 10-2 16-12 24-18Z"/></svg>'},
   whale:{w:[160,240],face:-1,dur:[70,95],svg:'<svg viewBox="0 0 120 40"><path d="M2 22C10 8 40 4 70 10c18 4 30 10 38 4l8-10-2 14 10 6-14-2c-10 10-30 14-60 12C28 30 6 30 2 22Z"/></svg>'}};
  const W=[['school',30],['fish',26],['turtle',12],['ray',13],['whale',6],['jelly',13]],rnd=(a,b)=>a+Math.random()*(b-a);
- function spawn(first){const layer=$('swim');if(!layer||RMQ.matches||document.hidden||layer.childElementCount>=4)return;
+ function spawn(first){const layer=$('swim');if(!layer||!PREF.get('swim',true)||RMQ.matches||document.hidden||layer.childElementCount>=4)return;
   let r=Math.random()*100,k='fish';for(const[n,w]of W){if((r-=w)<0){k=n;break}}
   const far=Math.random(),el=document.createElement('div');
   if(k==='jelly'){const d=rnd(40,60);el.className='sw j';el.style.cssText=`left:${rnd(4,88)}%;width:${rnd(22,40)}px;height:${rnd(34,60)}px;--dur:${d}s;--o:${(.25+far*.2).toFixed(2)}`;el.innerHTML=JF;
@@ -625,7 +675,11 @@ function world(k){const w=$('world'),sp=w.offsetHeight*5.2;
 /* ---------- network ---------- */
 let UID='';try{UID=localStorage.getItem('dd_uid')||'';if(!UID){UID=crypto.randomUUID();localStorage.setItem('dd_uid',UID)}}catch(e){UID=String(Math.random()).slice(2)+Date.now()}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-async function api(url,body){for(let n=0;;n++){let r;
+let waking=false;
+async function api(url,body){ // shows a "waking up" notice if the free server is asleep (first request after a quiet spell)
+ const t=url==='/api/answer'?0:setTimeout(()=>{waking=true;net(true,'Waking up the deep… up to 30 seconds')},2500);
+ try{return await apiRaw(url,body)}finally{clearTimeout(t);if(waking){waking=false;net(false)}}}
+async function apiRaw(url,body){for(let n=0;;n++){let r;
  try{r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)})}catch(e){if(n<2){await sleep(800*(n+1));continue}throw Object.assign(new Error('network'),{status:0})}
  if(r.ok)return r.json();const j=await r.json().catch(()=>({}));
  if((r.status>=500||r.status===429)&&n<2){await sleep(1000*(n+1));continue}
@@ -633,10 +687,11 @@ async function api(url,body){for(let n=0;;n++){let r;
 /* the server keeps games in memory, so a restart (Render sleeping or a redeploy) loses dives in progress */
 function apiErr(e,retry){const fb=$('fb'),btn=$('go');if(!fb)return;
  if(e.status===400||e.status===409){timerStop();fb.innerHTML='<span class="err pop">This dive was reset because the server restarted.</span>';$('a').disabled=true;btn.textContent='Back to menu';btn.onclick=()=>nav(home);return true}
- fb.innerHTML=`<span class="err pop">${e.status===429?'Too many tries, wait a moment.':"Can't reach the server. Check your connection."}</span>`;return false}
+ fb.innerHTML=`<span class="err pop">${e.status===503?"Couldn't check that answer just now. Try again.":e.status===429?'Too many tries, wait a moment.':"Can't reach the server. Check your connection."}</span>`;return false}
 /* rooms: each tab keeps a seat token so a dropped connection (phone locked, wifi blip, page reload) rejoins the same seat */
 const seatFor=c=>{try{let v=sessionStorage.getItem('dd_seat_'+c);if(!v){v=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now());sessionStorage.setItem('dd_seat_'+c,v)}return v}catch(e){return 'seat'+Math.random()}};
-const net=on=>{const n=$('net');if(n)n.classList.toggle('on',!!on)};
+const net=(on,t)=>{const n=$('net');if(!n)return;n.textContent=t||'Reconnecting…';n.classList.toggle('on',!!on)};
+addEventListener('offline',()=>net(true,"You're offline"));addEventListener('online',()=>net(false));
 const RMAPI={join(name,o){return new Promise((resolve,reject)=>{
  let ws=null,st=null,h=null,opened=false,closed=false,tries=0,timer=null;const seat=seatFor(o.code);
  const emit=()=>{if(!h||!st)return;h({peers:st.players.map(p=>({peer:p.id,kind:'viewer',isMe:p.id===st.you,sameTab:p.id===st.you,presence:{name:p.name,score:p.score,q:p.q,done:p.done,host:p.host,away:p.away,go:st.go}}))})};
@@ -660,10 +715,28 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&room&&roo
 addEventListener('online',()=>{if(room&&room.wake)room.wake()});
 RM=RMAPI;DB=true;
 home();
+function sheet(html,onClose){closeSheet(true);const d=document.createElement('div');d.className='sheet';d.innerHTML=`<div class="sheet-card" role="dialog" aria-modal="true">${html}</div>`;
+ document.body.appendChild(d);d._close=onClose;d.addEventListener('pointerdown',e=>{if(e.target===d)closeSheet()});requestAnimationFrame(()=>d.classList.add('on'));return d}
+function closeSheet(now){const d=document.querySelector('.sheet');if(!d)return;d._close&&d._close();d.classList.remove('on');now?d.remove():setTimeout(()=>d.remove(),250)}
+addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+function settings(){sheet(`<h2>Settings</h2>
+ <label class="fld"><span>Your name</span><input id="sNm" maxlength="16" value="${esc(nick)}" autocomplete="nickname" placeholder="Your nickname"></label>
+ <label class="fld"><span>Sound effects volume</span><input id="sSv" type="range" min="0" max="100" value="${Math.round(PREF.get('sv',1)*100)}"></label>
+ <label class="fld"><span>Music volume</span><input id="sMv" type="range" min="0" max="100" value="${Math.round(PREF.get('mv',1)*100)}"></label>
+ <label class="tgl"><input type="checkbox" id="sSl" ${PREF.get('slow',false)?'checked':''}><span>Longer timer in solo dives (+10 seconds)</span></label>
+ <label class="tgl"><input type="checkbox" id="sSw" ${PREF.get('swim',true)?'checked':''}><span>Sea creatures in the background</span></label>
+ <button id="sIn" class="alt" hidden>Install Deepdive as an app</button><button id="sOk">Done</button>`,()=>{
+  const v=($('sNm')||{}).value;if(v!=null){nick=v.trim().slice(0,16)||nick;try{localStorage.setItem('dd_nick',nick)}catch(e){}const n=$('nk');if(n&&document.body.dataset.s==='home')n.value=nick}});
+ const vols=()=>{const sv=$('sSv').value/100,mv=$('sMv').value/100;PREF.set('sv',sv);PREF.set('mv',mv);AU.setVols(sv,mv)};
+ $('sSv').oninput=vols;$('sMv').oninput=vols;$('sSv').onchange=()=>AU.correct(60);
+ $('sSl').onchange=e=>PREF.set('slow',e.target.checked);
+ $('sSw').onchange=e=>{PREF.set('swim',e.target.checked);if(!e.target.checked)$('swim').innerHTML=''};
+ if(window.installReady)installReady($('sIn'));
+ $('sOk').onclick=()=>closeSheet()}
 const AUI={snd:['<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>','<path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/>'],
  mus:['<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>','<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path d="M3 3l18 18"/>']};
 function syncAu(){for(const[id,k,on]of[['sndB','snd',AU.sound],['musB','mus',AU.music]]){const b=$(id);b.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${AUI[k][on?0:1]}</svg>`;b.setAttribute('aria-pressed',on);b.title=(on?'Turn off ':'Turn on ')+(k==='snd'?'sound effects':'music')}}
-$('sndB').onclick=()=>{AU.setSound(!AU.sound);syncAu()};$('musB').onclick=()=>{AU.setMusic(!AU.music);syncAu()};syncAu();
+$('setB').onclick=settings;$('sndB').onclick=()=>{AU.setSound(!AU.sound);syncAu()};$('musB').onclick=()=>{AU.setMusic(!AU.music);syncAu()};syncAu();
 {const inv=(new URLSearchParams(location.search).get('room')||'').toUpperCase();let c=null;try{c=sessionStorage.getItem('dd_room')}catch(e){}
  if(inv)history.replaceState(null,'',location.pathname); // tidy the address bar
  if(c&&(!inv||c===inv)){name();joinRoom(c,false,true)}  // reload while in a room: rejoin the same seat
