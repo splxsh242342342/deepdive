@@ -235,6 +235,17 @@ ul.res{margin-top:8px}
 .box-in .pb{animation:grow .6s var(--ease-out) both;animation-delay:calc(200ms + var(--d,0)*100ms)}
 @keyframes grow{from{transform:scaleY(0)}}
 
+/* question-count picker */
+.sz{margin:16px 0 4px;text-align:center}.sz>span{display:block;margin-bottom:8px;font-size:14px;font-weight:600;color:var(--mut)}
+.chips{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+button.chip,button.chip:hover{min-height:42px;margin:0;padding:0;border-radius:10px;background:#ffffff08!important;border:1px solid var(--edge);color:var(--foam);font-weight:700;box-shadow:none;transform:none}
+button.chip.on{background:#6ff7e11f!important;border-color:var(--aqua);color:var(--aqua);box-shadow:0 0 14px #6ff7e133}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
+.au-ctl{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:10px;z-index:6;display:flex;gap:6px}
+button.au,button.au:hover{display:grid;place-items:center;width:38px;height:38px;min-height:0;margin:0;padding:0;border-radius:50%;background:#08142acc!important;border:1px solid var(--edge);color:var(--mut);box-shadow:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+button.au svg{width:18px;height:18px}
+button.au[aria-pressed=true]{color:var(--aqua);border-color:#6ff7e140}
+@media(hover:hover){button.au:hover:not(:disabled){box-shadow:0 0 14px #6ff7e14d}}
 #net{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top,0px));z-index:5;padding:7px 14px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);font-size:14px;font-weight:700;transform:translate(-50%,-60px);transition:transform .3s var(--ease-out)}
 #net.on{transform:translate(-50%,0)}
 .notice{margin:-8px auto 18px;max-width:320px;padding:10px 12px;border-radius:10px;background:#ff6b5a1a;border:1px solid #ff6b5a55;font-size:14px;text-align:left}
@@ -252,7 +263,7 @@ li.hit{animation:hit 2.4s var(--ease-out)}@keyframes hit{0%,30%{background:#6ff7
 }
 @media(max-height:640px) and (max-width:520px){.hero{width:84px;height:126px}.tag{margin-bottom:16px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#count.on{opacity:1}}
-</style></head><body><div id="sea"></div><div id="deep"></div><div id="world" aria-hidden="true"><div id="snowF"></div><div id="scene"></div><div id="snowN"></div></div><div id="bub"></div><div id="rays"></div><div id="rail"><span id="mk2"></span></div><div id="zb"></div><div id="count"></div><div id="flash"></div><div id="net" role="status">Reconnecting…</div><main>
+</style></head><body><div id="sea"></div><div id="deep"></div><div id="world" aria-hidden="true"><div id="snowF"></div><div id="scene"></div><div id="snowN"></div></div><div id="bub"></div><div id="rays"></div><div id="rail"><span id="mk2"></span></div><div id="zb"></div><div id="count"></div><div id="flash"></div><div id="net" role="status">Reconnecting…</div><div class="au-ctl"><button class="au" id="sndB" aria-label="Sound effects"></button><button class="au" id="musB" aria-label="Background music"></button></div><main>
 <header><h1>Deepdive</h1><span class="krill"></span><div class="sub">Seven prompts. Rare answers sink you deeper.</div></header>
 <div class="hud"><span id="pm"></span><div class="bar"><i id="bar"><i id="barf"><i id="barg"></i></i></i><b data-k="0.1714" style="left:17.14%"></b><b data-k="0.3429" style="left:34.29%"></b><b data-k="0.5143" style="left:51.43%"></b><b data-k="0.6857" style="left:68.57%"></b><b data-k="0.8571" style="left:85.71%"></b><b data-k="0.9714" style="left:97.14%"></b><span class="cap" id="cap"></span></div>
 <div class="meta"><span id="zone">Surface</span><span id="depth">0 m</span></div></div>
@@ -278,12 +289,12 @@ function sparkle(){const r=$('mk2').getBoundingClientRect(),cx=r.left+r.width/2,
  for(let i=0;i<14;i++){const e=document.createElement('i');e.className='sp';const a=Math.random()*6.28,d=30+Math.random()*50;
   e.style.cssText=`left:${cx}px;top:${cy}px;--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d-20}px;animation-delay:${Math.random()*.25}s`;
   e.addEventListener('animationend',()=>e.remove());document.body.appendChild(e)}}
-function dive(d){if(RMQ.matches)return;document.body.classList.remove('dip');void document.body.offsetWidth;document.body.classList.add('dip');const dv=$('mk2');dv.classList.remove('on');void dv.offsetWidth;dv.classList.add('on');
+function dive(d){if(RMQ.matches)return;setTimeout(()=>{const cp=$('cap');if(cp&&document.body.dataset.s==='game'){const q=cp.getBoundingClientRect();FX.ring(q.right,q.top+q.height/2,{r1:34,life:.9,w:2})}},700);document.body.classList.remove('dip');void document.body.offsetWidth;document.body.classList.add('dip');const dv=$('mk2');dv.classList.remove('on');void dv.offsetWidth;dv.classList.add('on');
  const n=Math.min(14,4+Math.round(d/10)),b=$('bub');
  for(let i=0;i<n;i++){const e=document.createElement('i'),s=4+Math.random()*16;e.className='f';
   e.style.cssText=`left:${Math.random()*100}%;width:${s}px;height:${s}px;--dx:${Math.random()*80-40}px;animation:rise ${.8+Math.random()*1.1}s ${Math.random()*.4}s both`;
   e.addEventListener('animationend',()=>e.remove());b.appendChild(e)}}
-function banner(n){const z=$('zb');z.textContent=n;z.classList.remove('on');void z.offsetWidth;z.classList.add('on')}
+function banner(n){if(n!=='One in a Krillion')AU.zone();const z=$('zb');z.textContent=n;z.classList.remove('on');void z.offsetWidth;z.classList.add('on')}
 /* ---------- seeded picks ---------- */
 function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -291,6 +302,84 @@ function pick(seed){const r=rng(hash(seed)),a=[...POOL.keys()];for(let i=a.lengt
 /* ---------- screens ---------- */
 function scr(n){document.body.dataset.s=n}
 const RMQ=matchMedia('(prefers-reduced-motion: reduce)');
+/* ---------- light effects: one canvas, additive glowing particles and rings ---------- */
+const FX=(()=>{const c=document.createElement('canvas');c.id='fx';c.setAttribute('aria-hidden','true');document.body.appendChild(c);
+ const x=c.getContext('2d'),sprites={};let W=0,H=0,parts=[],rings=[],raf=0,last=0;
+ const size=()=>{const d=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;x.setTransform(d,0,0,d,0,0)};size();addEventListener('resize',size);
+ const sprite=col=>{if(sprites[col])return sprites[col];const s=document.createElement('canvas');s.width=s.height=64;const g=s.getContext('2d'),r=g.createRadialGradient(32,32,0,32,32,32);
+  r.addColorStop(0,'#ffffff');r.addColorStop(.18,col);r.addColorStop(1,'transparent');g.fillStyle=r;g.fillRect(0,0,64,64);return sprites[col]=s};
+ function loop(t){const dt=Math.min(.5,(t-(last||t))/1000)||.016; // real elapsed time, so effects end on time even on throttled/low-power screenslast=t;x.clearRect(0,0,W,H);x.globalCompositeOperation='lighter';
+  rings=rings.filter(r=>{r.t+=dt;const k=r.t/r.life;if(k>=1)return false;if(k<0)return true;const rad=r.r0+(r.r1-r.r0)*(1-Math.pow(1-k,3));
+   x.globalAlpha=(1-k)*r.a;x.strokeStyle=r.c;x.lineWidth=r.w*(1-k)+.6;x.shadowColor=r.c;x.shadowBlur=12;x.beginPath();x.arc(r.x,r.y,rad,0,6.2832);x.stroke();return true});
+  x.shadowBlur=0;
+  parts=parts.filter(p=>{p.t+=dt;if(p.t>=p.life)return false;const f=Math.pow(.96,dt*60);p.vx*=f;p.vy=p.vy*f-p.g*dt*60;p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;
+   const k=p.t/p.life;x.globalAlpha=(k<.15?k/.15:1-(k-.15)/.85)*p.a;const s=p.s*6;x.drawImage(sprite(p.c),p.x-s/2,p.y-s/2,s,s);return true});
+  x.globalAlpha=1;if(parts.length||rings.length)raf=requestAnimationFrame(loop);else{raf=0;last=0;x.clearRect(0,0,W,H)}}
+ const kick=()=>{if(!raf)raf=requestAnimationFrame(loop)};
+ const center=el=>{const r=el.getBoundingClientRect();return[r.left+r.width/2,r.top+r.height/2]};
+ return{center,
+  ring(px,py,o={}){if(RMQ.matches)return;rings.push({x:px,y:py,r0:o.r0||4,r1:o.r1||60,life:o.life||.9,w:o.w||2,a:o.a||.8,c:o.c||'#6ff7e1',t:-(o.delay||0)});kick()},
+  burst(px,py,n,o={}){if(RMQ.matches)return;const cols=o.cols||['#6ff7e1','#9ffcec','#a98bff'];
+   for(let i=0;i<n;i++){const a=o.up?-Math.PI/2+(Math.random()-.5)*2.2:Math.random()*6.2832,sp=(o.speed||2)*(.35+Math.random());
+    parts.push({x:px+(o.spread?(Math.random()-.5)*o.spread:0),y:py,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,g:o.g??.012,s:(o.size||2.2)*(.6+Math.random()*.8),life:(o.life||1.3)*(.6+Math.random()*.6),a:o.a||.9,c:cols[i%cols.length],t:0})}
+   if(parts.length>500)parts.splice(0,parts.length-500);kick()}}})();
+/* touching the water makes it glow, like real bioluminescent plankton */
+let lastTrail=0;
+document.addEventListener('pointerdown',e=>{FX.ring(e.clientX,e.clientY,{r1:34,life:.7,a:.45,w:1.5});FX.burst(e.clientX,e.clientY,5,{speed:1.1,size:1.8,life:1,a:.7})},{passive:true});
+document.addEventListener('pointermove',e=>{if(e.pointerType!=='mouse'||e.timeStamp-lastTrail<45)return;lastTrail=e.timeStamp;FX.burst(e.clientX,e.clientY,1,{speed:.35,size:1.4,life:1.1,a:.35,g:-.004})},{passive:true});
+
+/* ---------- sound: everything is synthesised with Web Audio, no files ---------- */
+const AU=(()=>{let ctx=null,sfx,mus,verb,musTimer=null,dropTimer=null,voices=[],chordI=0,unlocked=false;
+ let soundOn=true,musicOn=true;try{soundOn=localStorage.getItem('dd_snd')!=='0';musicOn=localStorage.getItem('dd_mus')!=='0'}catch(e){}
+ const MUSIC_VOL=.075,SFX_VOL=.5;
+ function init(){if(ctx)return ctx;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;ctx=new AC();
+  const master=ctx.createGain(),comp=ctx.createDynamicsCompressor();comp.threshold.value=-20;comp.ratio.value=4;master.connect(comp).connect(ctx.destination);
+  verb=ctx.createConvolver();const r=ctx.sampleRate,len=r*4,b=ctx.createBuffer(2,len,r);
+  for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3.2)}
+  verb.buffer=b;const vg=ctx.createGain();vg.gain.value=.55;verb.connect(vg).connect(master);
+  sfx=ctx.createGain();sfx.gain.value=soundOn?SFX_VOL:0;sfx.connect(master);const ss=ctx.createGain();ss.gain.value=.4;sfx.connect(ss).connect(verb);
+  mus=ctx.createGain();mus.gain.value=0;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1400;mus.connect(lp).connect(master);
+  const ms=ctx.createGain();ms.gain.value=.9;lp.connect(ms).connect(verb);
+  return ctx}
+ const now=()=>ctx.currentTime;
+ function tone(f,t0,dur,o={}){if(!ctx)return;const osc=ctx.createOscillator(),g=ctx.createGain();osc.type=o.type||'sine';osc.frequency.setValueAtTime(f,t0);
+  if(o.to)osc.frequency.exponentialRampToValueAtTime(o.to,t0+(o.glide||dur));if(o.detune)osc.detune.value=o.detune;
+  g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(o.v||.25,t0+(o.a||.01));g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+  osc.connect(g).connect(o.dest||sfx);osc.start(t0);osc.stop(t0+dur+.05)}
+ const ok=()=>ctx&&soundOn&&ctx.state==='running';
+ const N=s=>440*Math.pow(2,(s-69)/12); // midi note -> Hz
+ const PENTA=[72,74,76,79,81,84,86,88]; // C major pentatonic, C5 up
+ /* music: a slow pad drifting between four chords, with the odd droplet note */
+ const CHORDS=[[53,57,60,64],[48,55,60,64],[45,52,57,60],[43,50,55,62]]; // Fmaj7, Cadd9, Am, G6/9
+ function chord(){if(!ctx)return;const t=now(),c=CHORDS[chordI++%CHORDS.length];
+  for(const v of voices){v.g.gain.cancelScheduledValues(t);v.g.gain.setValueAtTime(v.g.gain.value,t);v.g.gain.linearRampToValueAtTime(0,t+6);v.o.forEach(o=>o.stop(t+6.2))}
+  voices=c.map((m,i)=>{const g=ctx.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16/(1+i*.25),t+5);g.connect(mus);
+   const o=[-6,6].map(d=>{const osc=ctx.createOscillator();osc.type=i?'sine':'triangle';osc.frequency.value=N(m);osc.detune.value=d;osc.connect(g);osc.start(t);return osc});return{g,o}})}
+ function drop(){if(!ctx||!musicOn)return;const t=now(),m=PENTA[Math.floor(Math.random()*PENTA.length)];tone(N(m),t,2.4,{v:.05,a:.005,dest:mus});tone(N(m+12),t,1.2,{v:.012,a:.005,dest:mus});
+  dropTimer=setTimeout(drop,2500+Math.random()*4500)}
+ function startMusic(){if(!ctx||musTimer)return;const t=now();mus.gain.cancelScheduledValues(t);mus.gain.setValueAtTime(mus.gain.value,t);mus.gain.linearRampToValueAtTime(MUSIC_VOL,t+5);
+  chord();musTimer=setInterval(chord,11000);dropTimer=setTimeout(drop,3000)}
+ function stopMusic(){if(!ctx)return;clearInterval(musTimer);clearTimeout(dropTimer);musTimer=null;const t=now();mus.gain.cancelScheduledValues(t);mus.gain.setValueAtTime(mus.gain.value,t);mus.gain.linearRampToValueAtTime(0,t+1.5)}
+ function unlock(){if(unlocked&&ctx&&ctx.state==='running')return;if(!init())return;ctx.resume&&ctx.resume();unlocked=true;if(musicOn)startMusic()}
+ ['pointerdown','keydown'].forEach(ev=>addEventListener(ev,unlock,{passive:true}));
+ document.addEventListener('visibilitychange',()=>{if(!ctx)return;document.hidden?ctx.suspend():ctx.resume()});
+ return{
+  get sound(){return soundOn},get music(){return musicOn},
+  setSound(on){soundOn=on;try{localStorage.setItem('dd_snd',on?'1':'0')}catch(e){}if(sfx)sfx.gain.setTargetAtTime(on?SFX_VOL:0,now(),.05)},
+  setMusic(on){musicOn=on;try{localStorage.setItem('dd_mus',on?'1':'0')}catch(e){}unlock();on?startMusic():stopMusic()},
+  tap(){if(ok())tone(1320,now(),.07,{v:.035})},
+  bloop(){if(ok())tone(260,now(),.22,{to:620,glide:.12,v:.18})},
+  correct(r){if(!ok())return;const t=now(),n=r<20?1:r<50?2:r<80?3:4;for(let i=0;i<n;i++)tone(N(PENTA[i*2]),t+i*.09,.9,{type:'triangle',v:.16})},
+  krill(){if(!ok())return;const t=now();[72,76,79,83,86,91,96].forEach((m,i)=>{tone(N(m),t+i*.07,1.6,{v:.13});tone(N(m+12),t+i*.07,.8,{v:.03})})},
+  bad(){if(ok())tone(196,now(),.32,{type:'triangle',to:130,v:.2})},
+  timeup(){if(ok()){const t=now();tone(247,t,.5,{type:'triangle',to:165,v:.18});tone(185,t+.12,.6,{type:'triangle',to:123,v:.14})}},
+  tick(){if(ok())tone(1046,now(),.05,{v:.05})},
+  count(go){if(ok()){const t=now();go?(tone(N(84),t,.6,{v:.2}),tone(N(91),t+.06,.6,{v:.12})):tone(N(76),t,.25,{v:.16})}},
+  zone(){if(!ok())return;const t=now();tone(150,t,2.4,{type:'triangle',to:215,glide:.9,a:.5,v:.14});tone(110,t+.4,2.2,{to:92,a:.6,v:.1})},
+  end(){if(!ok())return;const t=now();[60,64,67,72,76].forEach((m,i)=>tone(N(m),t+i*.13,1.4,{type:'triangle',v:.13}))},
+  jelly(){if(ok()){const t=now();tone(N(84),t,1.1,{v:.1});tone(N(91),t+.05,.9,{v:.05});tone(N(96),t+.1,.7,{v:.03})}}}})();
+document.addEventListener('click',e=>{if(e.target.closest('button:not(.au)'))AU.tap()});
+
 /* paint: swap screen content; mode=true plays the entrance (card lifts in, children stagger) */
 function paint(html,mode){const b=$('box');clearTimeout(b._t);b.classList.remove('box-out','box-in');b.innerHTML=html;
  if(!mode)return;let i=0;b.querySelectorAll('.q>*,.home>*').forEach(c=>c.style.setProperty('--i',Math.min(i++,8)));
@@ -321,11 +410,11 @@ function home(){leave();timerStop();setTimeout(()=>{notice=''},0);G=null;shown=0
    if(r.done){DAILY=r;nav(()=>dailyDone(r));return}
    nav(()=>start(r.prompts.map(q=>({q})),r.gameId,{mode,num:r.num,time:r.time,resume:r.resume}))}
   catch(e){load(b,false);(b.querySelector('.ds')||b).textContent='Server unavailable, try again'}};
- const hero=document.querySelector('.hero');if(hero)hero.onclick=()=>{hero.classList.remove('zap');void hero.offsetWidth;hero.classList.add('zap')};
+ const hero=document.querySelector('.hero');if(hero)hero.onclick=()=>{hero.classList.remove('zap');void hero.offsetWidth;hero.classList.add('zap');AU.jelly();const[x,y]=FX.center(hero);FX.burst(x,y-30,40,{speed:2.6,size:2.4,life:1.6});FX.ring(x,y-30,{r1:130,w:2.5,life:1.1})};
  $('solo').onclick=()=>play('daily',$('solo'));$('pr').onclick=()=>play('practice',$('pr'));
  $('mp').onclick=()=>{name();nav(mpHub)};$('lbb').onclick=()=>{name();nav(lbScreen)}}
 function mpHub(){scr('mp');$('rm').innerHTML='';
- paint(`<div class="q"><h2>Multiplayer</h2><p class="note" style="margin:-8px 0 18px">Race friends through the same seven prompts.</p><button id="mk" style="margin-top:0">Create room</button><div class="or">or join with a code</div><div class="row"><input id="cd" maxlength="4" placeholder="CODE" aria-label="Room code" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase"><button id="jn" class="alt">Join</button></div><div class="note" id="mn" aria-live="polite"></div><button class="alt" id="bk">Back</button></div>`,true);
+ paint(`<div class="q"><h2>Multiplayer</h2><p class="note" style="margin:-8px 0 18px">Race friends through the same prompts. The host picks how many.</p><button id="mk" style="margin-top:0">Create room</button><div class="or">or join with a code</div><div class="row"><input id="cd" maxlength="4" placeholder="CODE" aria-label="Room code" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase"><button id="jn" class="alt">Join</button></div><div class="note" id="mn" aria-live="polite"></div><button class="alt" id="bk">Back</button></div>`,true);
  $('mk').onclick=()=>joinRoom(newCode(),true);
  $('jn').onclick=()=>{const c=$('cd').value.trim().toUpperCase();if(c.length!==4)shk($('cd'));else joinRoom(c,false)};
  $('cd').onkeydown=e=>{if(e.key==='Enter')$('jn').click()};
@@ -355,16 +444,19 @@ function roomTick(){if(!room)return;const s=document.body.dataset.s,g=Math.max(0
  if(g&&g!==curRound&&(s==='lobby'||s==='end')){startRound(g);return}
  if(s==='lobby')drawLobby();else if(s==='game')drawRace();else if(s==='end')drawResults()}
 let lobbyIds=new Set();
+const roundN=()=>room&&room.n||7;
+function sizePicker(){const n=roundN();return isHost()?`<div class="sz"><span>Questions per round</span><div class="chips" role="radiogroup" aria-label="Questions per round">${[3,5,7,10,15].map(k=>`<button class="chip${k===n?' on':''}" role="radio" aria-checked="${k===n}" data-n="${k}">${k}</button>`).join('')}</div></div>`:`<p class="note">${n} questions per round</p>`}
+function wireSize(){document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>{x.classList.toggle('on',x===c);x.setAttribute('aria-checked',x===c)});room.size(+c.dataset.n)})}
 function drawLobby(enter){const v=viewers(),host=isHost(),copied=$('cp')&&$('cp').dataset.done;
  paint(`<div class="q left"><div style="text-align:center"><small>Room code</small><br><div class="codebox"><span class="code">${esc(roomCode)}</span></div><br><button class="alt sm" id="cp">${copied?'Copied':'Copy invite'}</button></div><h3>Players (${v.length})</h3><ul class="pl">${v.map(p=>`<li class="${!enter&&!lobbyIds.has(p.peer)?'new':''}">${av(p.presence.name)}<span class="nm">${esc(String(p.presence.name).slice(0,16))}</span>${p.presence.away?'<span class="tg">Reconnecting…</span>':''}${p.presence.host?'<span class="tg">Host</span>':''}${p.isMe&&p.sameTab?'<span class="tg">You</span>':''}</li>`).join('')}</ul>
- <div class="note" style="text-align:center">${host?(v.length<2?'Waiting for friends to join…':'Everyone here? Start when ready.'):'Waiting for the host to start…'}</div>${host?'<button id="st">Start dive</button>':''}<button class="alt" id="lv">Leave room</button></div>`,enter);
- lobbyIds=new Set(v.map(p=>p.peer));if(copied)$('cp').dataset.done=1;
+ ${sizePicker()}<div class="note" style="text-align:center">${host?(v.length<2?'Waiting for friends to join…':'Everyone here? Start when ready.'):'Waiting for the host to start…'}</div>${host?'<button id="st">Start dive</button>':''}<button class="alt" id="lv">Leave room</button></div>`,enter);
+ lobbyIds=new Set(v.map(p=>p.peer));if(copied)$('cp').dataset.done=1;wireSize();
  $('cp').onclick=()=>{try{navigator.clipboard.writeText('Join my Deepdive room with code '+roomCode);$('cp').textContent='Copied';$('cp').dataset.done=1}catch(e){$('cp').textContent=roomCode}};
  if(host)$('st').onclick=()=>{load($('st'),true);room.presence({go:Date.now(),score:0,q:0,done:false})};
  $('lv').onclick=()=>nav(home)}
 async function startRound(g){curRound=g;room.presence({score:0,q:0,done:false});$('rm').innerHTML='';scr('count');
  const b=$('box');clearTimeout(b._t);b.classList.remove('box-in');b.classList.add('box-out');
- const c=$('count');for(const n of['3','2','1','GO']){c.textContent=n;c.classList.remove('on');void c.offsetWidth;c.classList.add('on');await new Promise(r=>setTimeout(r,n==='GO'?500:800))}
+ const c=$('count');for(const n of['3','2','1','GO']){c.textContent=n;AU.count(n==='GO');c.classList.remove('on');void c.offsetWidth;c.classList.add('on');await new Promise(r=>setTimeout(r,n==='GO'?500:800))}
  if(RMQ.matches)c.classList.remove('on');
  if(room&&curRound===g){if(room.prompts){start(room.prompts.map(q=>({q})),room.gid);drawRace()}}else if(!room)home()}
 /* race strip: rows are kept and updated in place so bars slide and rows glide when the order changes */
@@ -373,7 +465,7 @@ function drawRace(){if(!room)return;const v=viewers().sort((a,b)=>(+b.presence.s
  const before=new Map([...r.children].map(e=>[e.dataset.id,e.getBoundingClientRect().top])),keep=new Set();
  for(const p of v){const x=p.presence,sc=+x.score||0,id=String(p.peer);let e=[...r.children].find(c=>c.dataset.id===id);
   if(!e){e=document.createElement('div');e.className='rr';e.dataset.id=id;e.innerHTML=`${av(x.name)}<div class="rb"><i></i></div><b>0</b>`}
-  e.classList.toggle('me',!!(p.isMe&&p.sameTab));e.classList.toggle('away',!!x.away);e.querySelector('i').style.width=Math.min(100,sc/MAX*100)+'%';
+  e.classList.toggle('me',!!(p.isMe&&p.sameTab));e.classList.toggle('away',!!x.away);e.querySelector('i').style.width=Math.min(100,sc/(MAX*roundN()/7)*100)+'%';
   const b=e.querySelector('b'),cur=parseInt(b.textContent)||0;if(cur!==sc)tween(cur,sc,b,'');
   r.appendChild(e);keep.add(id)}
  for(const e of[...r.children])if(!keep.has(e.dataset.id))e.remove();
@@ -388,12 +480,12 @@ function podium(top){ // top: up to 3 of {name, v}, best first; drawn 2-1-3
 const rankRow=(r,i)=>`<li class="lr${r.me?' me':''}"${r.key?` data-k="${esc(r.key)}"`:''}><span class="rn">${i+1}</span>${trophy(i)}${av(r.name)}<span class="who"><b>${esc(String(r.name).slice(0,16))}${r.me?' <em>(you)</em>':''}</b><small>${esc(r.sub||rank(r.v))}</small></span><span class="val">${r.v} m</span></li>`;
 function drawResults(enter){$('rm').innerHTML='';const v=viewers().sort((a,b)=>(+b.presence.score||0)-(+a.presence.score||0)),pend=v.filter(p=>!p.presence.done).length,top=v.slice(0,3);
  paint(`<div class="q"><small>${pend?'Others still diving…':'Final results'}</small><h2>${pend?'Race in progress':'Dive complete'}</h2>${podium(top.map(p=>({name:p.presence.name,v:+p.presence.score||0})))}
- <ul class="pl ranks">${v.map((p,i)=>rankRow({name:p.presence.name,v:+p.presence.score||0,me:p.isMe&&p.sameTab,sub:p.presence.done?rank(+p.presence.score||0):p.presence.away?'Reconnecting…':`Diving · prompt ${Math.min(7,(+p.presence.q||0)+1)} of 7`},i)).join('')}</ul><div class="note">${esc(saveMsg)}</div>
- ${isHost()?`<button id="rm2" ${pend?'disabled':''}>Rematch</button>`:'<div class="note">The host can start a rematch.</div>'}<button class="alt" id="lv">Leave room</button></div>`,enter);
- if(isHost())$('rm2').onclick=()=>{load($('rm2'),true);room.presence({go:Date.now()})};
+ <ul class="pl ranks">${v.map((p,i)=>rankRow({name:p.presence.name,v:+p.presence.score||0,me:p.isMe&&p.sameTab,sub:p.presence.done?rank(+p.presence.score||0):p.presence.away?'Reconnecting…':`Diving · prompt ${Math.min(roundN(),(+p.presence.q||0)+1)} of ${roundN()}`},i)).join('')}</ul><div class="note">${esc(saveMsg)}</div>
+ ${isHost()?`${pend?'':sizePicker()}<button id="rm2" ${pend?'disabled':''}>Rematch</button>`:'<div class="note">The host can start a rematch.</div>'}<button class="alt" id="lv">Leave room</button></div>`,enter);
+ wireSize();if(isHost())$('rm2').onclick=()=>{load($('rm2'),true);room.presence({go:Date.now()})};
  $('lv').onclick=()=>nav(home)}
 function start(qs,gid,o={}){scr('game');G={qs,gid,i:0,tot:0,log:[],mode:o.mode||'room',num:o.num,TL:(o.time||20)*1000};shown=0;
- if(o.resume){G.i=o.resume.i;G.tot=o.resume.total;G.log=o.resume.log}hud();G.i<7?show():end()}
+ if(o.resume){G.i=o.resume.i;G.tot=o.resume.total;G.log=o.resume.log}hud();G.i<G.qs.length?show():end()}
 /* prompt timer: one linear transform transition drains the bar; it pauses while the answer is checked */
 let T=null;
 function setTimer(f,ms){const a=$('tb'),b=$('tbg');if(!a)return;const tr=ms?`transform ${ms}ms linear`:'none',x=((1-f)*100).toFixed(2);
@@ -401,46 +493,50 @@ function setTimer(f,ms){const a=$('tb'),b=$('tbg');if(!a)return;const tr=ms?`tra
 function timerStart(ms){timerStop();const bar=$('tb');if(!bar||!G)return;T={end:performance.now()+ms};
  setTimer(ms/G.TL,0);void bar.offsetWidth;setTimer(0,ms);
  T.to=setTimeout(timeUp,ms);T.iv=setInterval(tick,200);tick()}
-function tick(){if(!T)return;const left=Math.max(0,T.end-performance.now()),n=$('tn'),w=$('tw');if(n)n.textContent=Math.ceil(left/1000)+'s';if(w)w.classList.toggle('low',left<5000)}
+function tick(){if(!T)return;const left=Math.max(0,T.end-performance.now()),n=$('tn'),w=$('tw'),sec=Math.ceil(left/1000);if(left<5000&&sec>0&&sec!==T.ls){T.ls=sec;AU.tick()}if(n)n.textContent=Math.ceil(left/1000)+'s';if(w)w.classList.toggle('low',left<5000)}
 function timerPause(){if(!T)return 0;const left=Math.max(0,T.end-performance.now()),bar=$('tb');if(bar)setTimer(left/G.TL,0);timerStop();return left}
 function timerStop(){if(T){clearTimeout(T.to);clearInterval(T.iv);T=null}}
 async function timeUp(){timerStop();const inp=$('a'),btn=$('go');if(!inp||busy)return;if($('tn'))$('tn').textContent='0s';busy=true;inp.disabled=true;load(btn,true);
  let err=null;try{await api('/api/answer',{gameId:G.gid,i:G.i,skip:true})}catch(e){err=e}
  busy=false;load(btn,false);
  if(err){if(!apiErr(err)){btn.textContent='Retry';btn.onclick=timeUp}return}
- G.log.push(['',0,0,0]);$('tw').classList.add('out');if(room)room.presence({score:G.tot,q:G.i+1});
+ G.log.push(['',0,0,0]);AU.timeup();$('tw').classList.add('out');if(room)room.presence({score:G.tot,q:G.i+1});
  $('fb').innerHTML='<div class="pop"><span class="err">Time\'s up</span> <b>+0 m</b></div>';
- btn.textContent=G.i<6?'Next':'See result';btn.focus({preventScroll:true});btn.onclick=()=>nav(()=>{G.i++;G.i<7?show():end()})}
+ btn.textContent=G.i<G.qs.length-1?'Next':'See result';btn.focus({preventScroll:true});btn.onclick=()=>nav(()=>{G.i++;G.i<G.qs.length?show():end()})}
 function show(){const p=G.qs[G.i];
- paint(`<div class="q"><small>Prompt ${G.i+1} of 7</small><div class="pips" aria-hidden="true">${G.qs.map((_,n)=>`<i class="${n<G.i?'d':n===G.i?'c':''}"></i>`).join('')}</div><div class="tw" id="tw"><div class="tt"><i id="tb"><i id="tbg"></i></i></div><span class="tp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg><span id="tn">${G.TL/1000}s</span></span></div><h2 id="qh">${esc(p.q)}</h2><input id="a" aria-labelledby="qh" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" placeholder="Your answer"><button id="go">Dive</button><div class="fb" id="fb" aria-live="polite"></div></div>`,true);
+ paint(`<div class="q"><small>Prompt ${G.i+1} of ${G.qs.length}</small><div class="pips" aria-hidden="true">${G.qs.map((_,n)=>`<i class="${n<G.i?'d':n===G.i?'c':''}"></i>`).join('')}</div><div class="tw" id="tw"><div class="tt"><i id="tb"><i id="tbg"></i></i></div><span class="tp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg><span id="tn">${G.TL/1000}s</span></span></div><h2 id="qh">${esc(p.q)}</h2><input id="a" aria-labelledby="qh" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" placeholder="Your answer"><button id="go">Dive</button><div class="fb" id="fb" aria-live="polite"></div></div>`,true);
  const inp=$('a');inp.focus({preventScroll:true});setTimeout(()=>inp.scrollIntoView({block:'center',behavior:RMQ.matches?'auto':'smooth'}),250);inp.onkeydown=e=>{if(e.key==='Enter')go()};$('go').onclick=go;timerStart(G.TL)}
 function shake(){shk($('a'))}
+function celebrate(r){const[x,y]=FX.center($('fb'));
+ if(r.krill){AU.krill();FX.ring(x,y,{r1:230,c:'#ff8ad8',w:3,life:1.5});FX.ring(x,y,{r1:160,c:'#a98bff',w:2,life:1.3,delay:.15});FX.ring(x,y,{r1:300,c:'#6ff7e1',w:1.5,life:1.8,delay:.3});
+  FX.burst(x,y,80,{speed:3.6,size:2.8,life:1.9,cols:['#ff8ad8','#a98bff','#6ff7e1','#ffffff']})}
+ else{AU.correct(r.rarity);FX.ring(x,y,{r1:60+r.rarity*1.4,a:.7});FX.burst(x,y,8+Math.round(r.rarity/4),{speed:1.5+r.rarity/45,up:true,g:.02,size:2.2+r.rarity/60})}}
 function gain(pts){if(RMQ.matches)return;const g=document.createElement('span');g.className='gain';g.textContent='+'+pts+' m';g.addEventListener('animationend',()=>g.remove());document.querySelector('.meta').appendChild(g)}
 async function go(){if(busy||!T)return;const inp=$('a'),btn=$('go'),v=inp.value.trim();if(v.length<2){shake();inp.focus();return}
- busy=true;const left=timerPause();load(btn,true);$('fb').textContent='';$('tw').classList.add('hold');
+ busy=true;const left=timerPause();load(btn,true);AU.bloop();$('fb').textContent='';$('tw').classList.add('hold');
  let r;try{r=await api('/api/answer',{gameId:G.gid,i:G.i,answer:v})}catch(e){busy=false;load(btn,false);$('tw').classList.remove('hold');if(!apiErr(e))timerStart(left);return}
  busy=false;load(btn,false);$('tw').classList.remove('hold');
- if(!r.valid){shake();$('fb').innerHTML=`<span class="err pop">That's not a real answer. Try again.</span>`;inp.select();timerStart(left);return}
+ if(!r.valid){shake();AU.bad();{const[x,y]=FX.center(inp);FX.ring(x,y,{r1:110,c:'#ff7a8a',a:.55,w:1.5})}$('fb').innerHTML=`<span class="err pop">That's not a real answer. Try again.</span>`;inp.select();timerStart(left);return}
  const pts=r.pts,lab=r.krill?'One in a Krillion!':r.rarity<20?'Everyone says that':r.rarity<50?'Fairly common':r.rarity<80?'Uncommon':'Deep cut!';
- inp.disabled=true;$('tw').classList.add('out');G.tot+=pts;G.log.push([v,pts,r.rarity,r.krill?1:0]);hud();gain(pts);
+ inp.disabled=true;$('tw').classList.add('out');G.tot+=pts;G.log.push([v,pts,r.rarity,r.krill?1:0]);hud();gain(pts);celebrate(r);
  if(room)room.presence({score:G.tot,q:G.i+1});
  const sub=r.krill?'Nobody else has said that today.':G.mode==='daily'&&r.seen?`${r.seen} other diver${r.seen>1?'s':''} said this today`:(r.note||'');
  $('fb').innerHTML=`<div class="pop ${r.krill?'kr':r.rarity>=80?'rare':''}">${lab} <b>+${pts} m</b><br><small style="color:var(--mut)">${esc(sub)}</small></div>`;
  if(r.krill)banner('One in a Krillion');
  if(r.rarity>=80||r.krill){const f=$('flash');f.classList.toggle('gold',!!r.krill);f.classList.remove('on');void f.offsetWidth;f.classList.add('on')}
- btn.textContent=G.i<6?'Next':'See result';btn.focus({preventScroll:true});btn.onclick=()=>nav(()=>{G.i++;G.i<7?show():end()})}
+ btn.textContent=G.i<G.qs.length-1?'Next':'See result';btn.focus({preventScroll:true});btn.onclick=()=>nav(()=>{G.i++;G.i<G.qs.length?show():end()})}
 async function saveScore(t){try{const r=await api('/api/finish',{gameId:G.gid});return r.message}catch(e){return'Could not post score.'}}
 const sq=log=>log.map(l=>!l[0]?'⬛':l[3]?'🟨':l[2]>=80?'🟪':l[2]>=50?'🟦':'⬜').join('');
 function result(o){const{tot,log,qs,num,daily}=o;
- return `<div class="q"><small>${daily?'Daily dive #'+num:'You reached'}</small><div class="big" id="bt">0 m</div><p class="end-zone">${zone(tot)}</p><div class="stats"><div><b>${rank(tot)}</b><span>Rank</span></div><div><b>${log.filter(l=>l[3]).length}</b><span>Krillions</span></div><div><b>${log.filter(l=>l[0]).length}/7</b><span>Answered</span></div></div><h3 class="lh">Your answers</h3><ul class="res">${log.map((l,n)=>`<li class="${l[3]?'k':''}"><span><small>${esc(String(qs[n]))}</small>${l[0]?esc(l[0]):'<em>Time ran out</em>'}${l[3]?' <i class="kb">Krillion</i>':''}</span><span class="pts">${l[1]?"+"+l[1]:0} m</span></li>`).join('')}</ul><div class="sq" aria-hidden="true">${sq(log)}</div>${daily?`<div class="note">Next dive in <b id="nx">--:--:--</b></div>`:''}<div class="note" id="sv">${o.saved||'Posting score…'}</div><button id="sh">Copy result</button><button id="re" class="alt">Back to menu</button></div>`}
+ return `<div class="q"><small>${daily?'Daily dive #'+num:'You reached'}</small><div class="big" id="bt">0 m</div><p class="end-zone">${zone(tot)}</p><div class="stats"><div><b>${rank(tot)}</b><span>Rank</span></div><div><b>${log.filter(l=>l[3]).length}</b><span>Krillions</span></div><div><b>${log.filter(l=>l[0]).length}/${log.length}</b><span>Answered</span></div></div><h3 class="lh">Your answers</h3><ul class="res">${log.map((l,n)=>`<li class="${l[3]?'k':''}"><span><small>${esc(String(qs[n]))}</small>${l[0]?esc(l[0]):'<em>Time ran out</em>'}${l[3]?' <i class="kb">Krillion</i>':''}</span><span class="pts">${l[1]?"+"+l[1]:0} m</span></li>`).join('')}</ul><div class="sq" aria-hidden="true">${sq(log)}</div>${daily?`<div class="note">Next dive in <b id="nx">--:--:--</b></div>`:''}<div class="note" id="sv">${o.saved||'Posting score…'}</div><button id="sh">Copy result</button><button id="re" class="alt">Back to menu</button></div>`}
 function wireResult(o){tween(0,o.tot,$('bt'),' m');if($('nx'))clock($('nx'));
  const share=`${o.daily?'Deepdive #'+o.num:'Deepdive practice'} · ${o.tot} m · ${rank(o.tot)}\n${sq(o.log)}\n${location.host}`;
  $('sh').onclick=()=>{try{navigator.clipboard.writeText(share);$('sh').textContent='Copied'}catch(e){$('sh').textContent='Copy failed'}};
  $('re').onclick=()=>nav(home)}
 function dailyDone(d){scr('done');G=null;const o={tot:d.total,log:d.log,qs:d.prompts,num:d.num,daily:true,saved:'You have already dived today.'};
  paint(result(o),true);wireResult(o)}
-async function end(){timerStop();
- if(room){room.presence({score:G.tot,q:7,done:true});saveMsg='Multiplayer rounds are just for fun.';saveScore(G.tot);scr('end');drawResults(true);return}
+async function end(){timerStop();AU.end();
+ if(room){room.presence({score:G.tot,q:G.qs.length,done:true});saveMsg='Multiplayer rounds are just for fun.';saveScore(G.tot);scr('end');drawResults(true);return}
  scr('end');const o={tot:G.tot,log:G.log,qs:G.qs.map(x=>x.q),num:G.num,daily:G.mode==='daily'};
  paint(result(o),true);wireResult(o);
  const m=await saveScore(G.tot);const sv=$('sv');if(sv)sv.textContent=m;
@@ -518,6 +614,7 @@ const RMAPI={join(name,o){return new Promise((resolve,reject)=>{
  const emit=()=>{if(!h||!st)return;h({peers:st.players.map(p=>({peer:p.id,kind:'viewer',isMe:p.id===st.you,sameTab:p.id===st.you,presence:{name:p.name,score:p.score,q:p.q,done:p.done,host:p.host,away:p.away,go:st.go}}))})};
  const room={prompts:null,gid:null,me:null,go:0,onGone:null,
   presence(p){if(p&&p.go&&ws&&ws.readyState===1)ws.send(JSON.stringify({t:'start'}))},
+  size(n){if(ws&&ws.readyState===1)ws.send(JSON.stringify({t:'size',n}))},
   onPeers(f){h=f;emit();return()=>{h=null}},
   leave(){closed=true;clearTimeout(timer);net(false);try{ws.send(JSON.stringify({t:'leave'}))}catch(e){}try{ws.close()}catch(e){}try{sessionStorage.removeItem('dd_room')}catch(e){}},
   wake(){if(!closed&&opened&&(!ws||ws.readyState>1)){clearTimeout(timer);tries=0;connect()}}};
@@ -525,7 +622,7 @@ const RMAPI={join(name,o){return new Promise((resolve,reject)=>{
   ws.onopen=()=>me.send(JSON.stringify({t:'join',code:o.code,name:o.name,uid:UID,seat,create:!!o.host&&!opened}));
   ws.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(x){return}
    if(m.t==='err'){closed=true;net(false);if(!opened)reject(new Error(m.msg));else if(room.onGone)room.onGone(m.msg);try{me.close()}catch(x){}return}
-   if(m.t==='state'){st=m;tries=0;net(false);room.prompts=m.prompts||null;room.gid=m.gid||null;room.go=m.go||0;room.me=m.players.find(p=>p.id===m.you)||null;
+   if(m.t==='state'){st=m;tries=0;net(false);room.prompts=m.prompts||null;room.gid=m.gid||null;room.go=m.go||0;room.n=m.n||7;room.me=m.players.find(p=>p.id===m.you)||null;
     if(!opened){opened=true;try{sessionStorage.setItem('dd_room',o.code)}catch(x){}resolve(room)}emit()}};
   ws.onclose=()=>{if(closed||me!==ws)return;
    if(!opened&&tries>=2){closed=true;reject(new Error('closed'));return}
@@ -535,5 +632,9 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&room&&roo
 addEventListener('online',()=>{if(room&&room.wake)room.wake()});
 RM=RMAPI;DB=true;
 home();
+const AUI={snd:['<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>','<path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/>'],
+ mus:['<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>','<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path d="M3 3l18 18"/>']};
+function syncAu(){for(const[id,k,on]of[['sndB','snd',AU.sound],['musB','mus',AU.music]]){const b=$(id);b.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${AUI[k][on?0:1]}</svg>`;b.setAttribute('aria-pressed',on);b.title=(on?'Turn off ':'Turn on ')+(k==='snd'?'sound effects':'music')}}
+$('sndB').onclick=()=>{AU.setSound(!AU.sound);syncAu()};$('musB').onclick=()=>{AU.setMusic(!AU.music);syncAu()};syncAu();
 try{const c=sessionStorage.getItem('dd_room');if(c){name();joinRoom(c,false,true)}}catch(e){}
 </script></body></html>

@@ -25,7 +25,7 @@ const topics = q => { let t = topicCache.get(q); if (!t) { t = q.toLowerCase().r
 const famOf = q => FAMILY.get(q) || (/^Name something (\w+ )?(you'd find |in |at |on )/.test(q) ? 'place' : /^Name something that /.test(q) ? 'has' : /^Name something you can /.test(q) ? 'verb' : null); // hand-written prompts share some patterns too
 const fits = (q, chosen) => chosen.every(c => !topics(c).some(w => topics(q).includes(w)) && (!famOf(q) || famOf(q) !== famOf(c)));
 function takeFrom(queue, k, chosen) { const out = []; for (let i = 0; i < queue.length && out.length < k; i++) if (fits(queue[i], [...chosen, ...out])) { out.push(queue[i]); queue.splice(i--, 1); } return out; }
-const ROUNDS = 7, MAXPTS = 125, TIME = 20; // TIME = seconds per prompt (timer runs in the browser)
+const ROUNDS = 7, MAXPTS = 125, TIME = 20, ROUND_SIZES = [3, 5, 7, 10, 15]; // TIME = seconds per prompt (timer runs in the browser)
 const EPOCH = Date.UTC(2026, 9, 1); // daily dive #1
 
 /* ---------- storage ---------- */
@@ -91,9 +91,11 @@ const id = (n = 8) => crypto.randomBytes(n).toString('hex');
 const clean = (s, n) => String(s ?? '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, n);
 const BANK_N = 4; // per game: 4 hand-written prompts + 3 generated ones
 function shuffle(a, rnd = n => crypto.randomInt(n)) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-function pick() { // practice/multiplayer: random, varied, and never today's daily prompts
+function pick(n = ROUNDS) { // practice/multiplayer: random, varied, and never today's daily prompts
   const skip = new Set(daily(today())), bank = shuffle(QUESTIONS.filter(q => !skip.has(q))), gen = shuffle(GENERATED.filter(q => !skip.has(q)));
-  const b = takeFrom(bank, BANK_N, []); return shuffle([...b, ...takeFrom(gen, ROUNDS - BANK_N, b)]);
+  const nb = Math.round(n * BANK_N / ROUNDS), b = takeFrom(bank, nb, []), g = takeFrom(gen, n - nb, b);
+  const out = [...b, ...g]; for (const q of [...bank, ...gen]) { if (out.length >= n) break; if (!out.includes(q)) out.push(q); } // very long rounds can run out of topic-distinct prompts
+  return shuffle(out);
 }
 const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 function seeded(seed) { let a = crypto.createHash('sha256').update(seed).digest().readUInt32LE(0); return n => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return Math.floor((((t ^ (t >>> 14)) >>> 0) / 4294967296) * n); }; }
@@ -167,7 +169,7 @@ function newGame(uid, name, prompts, onUpdate, day = null) {
 }
 setInterval(() => { const cut = Date.now() - 3 * 3600e3; for (const [k, g] of games) if (g.t < cut) games.delete(k); for (const [k, gid] of dailyGames) if (!games.has(gid)) dailyGames.delete(k); }, 600e3);
 function saveScore(g) { // only the daily dive is ranked; practice and multiplayer are just for fun
-  if (g.saved || g.answers.length < ROUNDS || !g.day) return;
+  if (g.saved || g.answers.length < g.prompts.length || !g.day) return;
   g.saved = true;
   const o = scores[g.uid] || {}, d = g.day;
   scores[g.uid] = { name: g.name, best: Math.max(o.best || 0, g.total), day: d, dayBest: g.total, games: (o.games || 0) + 1, prompts: g.prompts, log: g.answers.map(x => [x.a, x.pts, x.rarity, x.krill ? 1 : 0]) };
@@ -220,8 +222,8 @@ app.post('/api/answer', async (req, res) => {
   const answer = clean(req.body.answer, 60);
   if (!g || (answer.length < 2 && !req.body.skip)) return res.status(400).json({ error: 'bad request' });
   const i = g.answers.length;
-  if (i >= ROUNDS || +req.body.i !== i) return res.status(400).json({ error: 'out of sync' });
-  const done = () => { g.onUpdate?.(g); if (g.answers.length === ROUNDS) saveScore(g); };
+  if (i >= g.prompts.length || +req.body.i !== i) return res.status(400).json({ error: 'out of sync' });
+  const done = () => { g.onUpdate?.(g); if (g.answers.length === g.prompts.length) saveScore(g); };
   if (req.body.skip) { g.answers.push({ a: '', pts: 0, rarity: 0 }); done(); return res.json({ valid: true, skip: true, pts: 0, total: g.total }); } // timer ran out
   if (g.answers.some(x => x.a && norm(x.a) === norm(answer))) return res.json({ valid: false });
   const r = await judge(g.prompts[i], answer);
@@ -244,7 +246,7 @@ app.post('/api/answer', async (req, res) => {
 
 app.post('/api/finish', (req, res) => {
   const g = games.get(String(req.body.gameId));
-  if (!g || g.answers.length < ROUNDS) return res.status(400).json({ error: 'not finished' });
+  if (!g || g.answers.length < g.prompts.length) return res.status(400).json({ error: 'not finished' });
   saveScore(g);
   res.json({ message: g.day ? 'Score posted to the leaderboard.' : 'Practice dives are not ranked.', total: g.total });
 });
@@ -261,14 +263,14 @@ const send = (ws, m) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(
 function pushState(room) {
   const players = [...room.players.values()].map(p => ({ id: p.id, name: p.name, host: p.host, score: p.score, q: p.q, done: p.done, away: !p.ws }));
   for (const p of room.players.values()) {
-    const msg = { t: 'state', code: room.code, you: p.id, go: room.go, players };
+    const msg = { t: 'state', code: room.code, you: p.id, go: room.go, n: room.n, players };
     if (room.go && p.gid) { msg.gid = p.gid; msg.prompts = room.prompts; }
     send(p.ws, msg);
   }
 }
 function enroll(room, p) { // give a player a game for the current round
   p.score = 0; p.q = 0; p.done = false;
-  p.gid = newGame(p.uid, p.name, room.prompts, g => { p.score = g.total; p.q = g.answers.length; p.done = g.answers.length >= ROUNDS; pushState(room); });
+  p.gid = newGame(p.uid, p.name, room.prompts, g => { p.score = g.total; p.q = g.answers.length; p.done = g.answers.length >= room.prompts.length; pushState(room); });
 }
 function removePlayer(p) {
   const room = p.room; if (!room) return;
@@ -293,7 +295,7 @@ wss.on('connection', ws => {
       const code = clean(m.code, 4).toUpperCase(), seat = clean(m.seat, 40);
       if (!/^[A-Z]{4}$/.test(code)) return send(ws, { t: 'err', msg: 'bad code' });
       let room = rooms.get(code);
-      if (m.create) { if (room) return send(ws, { t: 'err', msg: 'code taken' }); room = { code, go: 0, prompts: [], players: new Map() }; rooms.set(code, room); }
+      if (m.create) { if (room) return send(ws, { t: 'err', msg: 'code taken' }); room = { code, go: 0, n: ROUNDS, prompts: [], players: new Map() }; rooms.set(code, room); }
       else if (!room) return send(ws, { t: 'err', msg: 'room not found' });
       const back = seat && [...room.players.values()].find(x => x.seat === seat);
       if (back) { // reconnecting: take the seat over, close any stale socket
@@ -308,9 +310,11 @@ wss.on('connection', ws => {
     } else if (m.t === 'start' && p?.room && p.host) {
       const room = p.room;
       if ([...room.players.values()].some(x => x.ws && x.q > 0 && !x.done)) return pushState(room); // round still running
-      room.go = Date.now(); room.prompts = pick();
+      room.go = Date.now(); room.prompts = pick(room.n);
       for (const x of room.players.values()) enroll(room, x);
       pushState(room);
+    } else if (m.t === 'size' && p?.room && p.host && ROUND_SIZES.includes(+m.n)) { // host picks how many questions a round has
+      p.room.n = +m.n; pushState(p.room);
     } else if (m.t === 'leave' && p) { removePlayer(p); p = null; }
   });
   ws.on('close', () => { if (p && p.ws === ws) dropConnection(p); });
