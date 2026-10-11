@@ -28,22 +28,63 @@ function takeFrom(queue, k, chosen) { const out = []; for (let i = 0; i < queue.
 const ROUNDS = 7, MAXPTS = 125, TIME = 20; // TIME = seconds per prompt (timer runs in the browser)
 const EPOCH = Date.UTC(2026, 9, 1); // daily dive #1
 
-/* ---------- storage (JSON file; swap for a real DB if you grow) ---------- */
-fs.mkdirSync(DATA_DIR, { recursive: true });
-const SCORES_FILE = path.join(DATA_DIR, 'scores.json');
-let scores = {};
-try { scores = JSON.parse(fs.readFileSync(SCORES_FILE, 'utf8')); } catch {}
-let saveTimer = null;
-let scoresVersion = 0;
-const persist = () => { scoresVersion++; clearTimeout(saveTimer); saveTimer = setTimeout(() => fs.writeFile(SCORES_FILE, JSON.stringify(scores), () => {}), 500); };
+/* ---------- storage ---------- */
+// scores: uid -> {name, best, day, dayBest, games, prompts, log}; counts (daily answer counts): day -> [{n, a:{answerKey:count}} per prompt], only today is kept.
+// With DATABASE_URL set (free Neon Postgres) both live in Postgres and survive redeploys; otherwise JSON files in DATA_DIR (local dev).
+// Everything is read once at boot and served from memory; changes are written back in batches at most once a second.
+const DB_URL = process.env.DATABASE_URL || '';
+const SCORES_FILE = path.join(DATA_DIR, 'scores.json'), COUNTS_FILE = path.join(DATA_DIR, 'answers.json');
 const today = () => new Date().toISOString().slice(0, 10);
 const dayNum = d => Math.round((Date.parse(d) - EPOCH) / 864e5) + 1;
-/* daily answer counts: day -> [{n, a:{answerKey:count}} per prompt]; only today is kept */
-const COUNTS_FILE = path.join(DATA_DIR, 'answers.json');
-let counts = {};
-try { counts = JSON.parse(fs.readFileSync(COUNTS_FILE, 'utf8')); } catch {}
-let countTimer = null;
-const persistCounts = () => { clearTimeout(countTimer); countTimer = setTimeout(() => { const d = today(); for (const k of Object.keys(counts)) if (k !== d) delete counts[k]; fs.writeFile(COUNTS_FILE, JSON.stringify(counts), () => {}); }, 1000); };
+let scores = {}, counts = {}, scoresVersion = 0, db = null;
+if (DB_URL) {
+  const { default: pg } = await import('pg');
+  db = new pg.Pool({ connectionString: DB_URL, max: 3, idleTimeoutMillis: 30000, connectionTimeoutMillis: 15000 });
+  db.on('error', e => console.error('db idle client:', e.message)); // Neon drops idle connections when it scales to zero; the pool just reconnects
+  for (let tries = 1; ; tries++) {
+    try {
+      await db.query('create table if not exists deepdive_scores (uid text primary key, data jsonb not null); create table if not exists deepdive_counts (day text primary key, data jsonb not null)');
+      for (const r of (await db.query('select uid, data from deepdive_scores')).rows) scores[r.uid] = r.data;
+      for (const r of (await db.query('select day, data from deepdive_counts where day = $1', [today()])).rows) counts[r.day] = r.data;
+      break;
+    } catch (e) { // never start with an empty leaderboard: retry, then fail the deploy so Render keeps the old one running
+      console.error(`database not reachable (try ${tries}/5):`, e.message);
+      if (tries >= 5) process.exit(1);
+      await new Promise(r => setTimeout(r, 3000));
+    }
+  }
+} else {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  try { scores = JSON.parse(fs.readFileSync(SCORES_FILE, 'utf8')); } catch {}
+  try { counts = JSON.parse(fs.readFileSync(COUNTS_FILE, 'utf8')); } catch {}
+}
+const dirty = new Set(); // uids whose score changed since the last write
+let countsDirty = false, saveTimer = null, saving = Promise.resolve();
+async function flush() {
+  const d = today(); for (const k of Object.keys(counts)) if (k !== d) delete counts[k];
+  const uids = [...dirty], c = countsDirty; dirty.clear(); countsDirty = false;
+  if (!uids.length && !c) return;
+  try {
+    if (!db) {
+      if (uids.length) await fs.promises.writeFile(SCORES_FILE, JSON.stringify(scores));
+      if (c) await fs.promises.writeFile(COUNTS_FILE, JSON.stringify(counts));
+      return;
+    }
+    for (const u of uids) await db.query('insert into deepdive_scores (uid, data) values ($1, $2) on conflict (uid) do update set data = excluded.data', [u, JSON.stringify(scores[u])]);
+    if (c) {
+      await db.query('insert into deepdive_counts (day, data) values ($1, $2) on conflict (day) do update set data = excluded.data', [d, JSON.stringify(counts[d] || [])]);
+      await db.query('delete from deepdive_counts where day <> $1', [d]);
+    }
+  } catch (e) { // keep the changes and try again shortly
+    console.error('save failed:', e.message);
+    for (const u of uids) dirty.add(u); countsDirty ||= c; queueSave(5000);
+  }
+}
+const save = () => (saving = saving.then(flush)); // one write at a time, so an older snapshot never lands after a newer one
+const queueSave = (ms = 1000) => { if (!saveTimer) saveTimer = setTimeout(() => { saveTimer = null; save(); }, ms); };
+const persist = uid => { scoresVersion++; dirty.add(uid); queueSave(); };
+const persistCounts = () => { countsDirty = true; queueSave(); };
+for (const sig of ['SIGTERM', 'SIGINT']) process.once(sig, async () => { clearTimeout(saveTimer); await save(); await db?.end(); process.exit(0); }); // Render sends SIGTERM before a redeploy
 
 /* ---------- helpers ---------- */
 const id = (n = 8) => crypto.randomBytes(n).toString('hex');
@@ -130,7 +171,7 @@ function saveScore(g) { // only the daily dive is ranked; practice and multiplay
   g.saved = true;
   const o = scores[g.uid] || {}, d = g.day;
   scores[g.uid] = { name: g.name, best: Math.max(o.best || 0, g.total), day: d, dayBest: g.total, games: (o.games || 0) + 1, prompts: g.prompts, log: g.answers.map(x => [x.a, x.pts, x.rarity, x.krill ? 1 : 0]) };
-  persist();
+  persist(g.uid);
 }
 const dailyInfo = uid => { const d = today(), s = scores[uid]; const done = !!s && s.day === d && s.dayBest !== undefined && !!s.log; return { day: d, num: dayNum(d), done, total: done ? s.dayBest : 0, log: done ? s.log : null, time: TIME }; };
 
@@ -276,4 +317,4 @@ wss.on('connection', ws => {
 });
 setInterval(() => { for (const ws of wss.clients) { if (!ws.alive) { ws.terminate(); continue; } ws.alive = false; ws.ping(); } }, 20000); // heartbeat: notice dead phones
 
-server.listen(PORT, () => console.log(`Deepdive on :${PORT} (AI judging ${KEY ? 'Anthropic' : GKEY ? 'Gemini' : 'OFF - set GEMINI_API_KEY or ANTHROPIC_API_KEY'}, ${QUESTIONS.length} + ${GENERATED.length} generated questions)`));
+server.listen(PORT, () => console.log(`Deepdive on :${PORT} (AI judging ${KEY ? 'Anthropic' : GKEY ? 'Gemini' : 'OFF - set GEMINI_API_KEY or ANTHROPIC_API_KEY'}, ${QUESTIONS.length} + ${GENERATED.length} generated questions, scores in ${db ? 'Postgres' : DATA_DIR}, ${Object.keys(scores).length} players)`));
