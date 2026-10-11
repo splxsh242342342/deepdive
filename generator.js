@@ -74,22 +74,22 @@ const EVENTS = ['at a wedding', 'at a birthday party', 'at a sleepover', 'on a c
 
 const SPORT = ['a ball', 'a bat', 'a racket', 'a stick', 'a net', 'a board', 'a horse', 'a boat', 'a bike', 'skates', 'a helmet', 'a team of eleven', 'a goal', 'a puck'];
 
-const uniq = a => [...new Set(a)];
+const uniq = a => [...new Map(a.map(x => [x.q, x])).values()];
 const art = w => (/^[aeiou]/i.test(w) ? 'an ' : 'a ') + w;
 
-export function generatePrompts() {
-  const out = [];
-  for (const p of PLACES) out.push(`Name something you'd find ${p}`);
-  for (const [p, adjs] of Object.entries(RICH)) for (const a of adjs) out.push(`Name something ${a} you'd find ${p}`);
-  for (const v of VERBS) out.push(`Name something you can ${v}`);
-  for (const h of HAS) out.push(`Name something that ${h}`);
-  for (const f of FOOD) out.push(`Name a food that is ${f}`);
-  for (const m of MEALS) out.push(`Name something you'd eat ${m}`);
-  for (const a of ANIMAL) out.push(`Name an animal that ${a}`);
-  for (const r of REGIONS) out.push(`Name a country in ${r}`, `Name a city in ${r}`, `Name a river in ${r}`, `Name a capital city in ${r}`, `Name a food from ${r}`);
-  for (const c of CITY_IN) out.push(`Name a city in ${c}`, `Name a food from ${c}`, `Name something ${c} is famous for`);
-  for (const j of JOBS) out.push(`Name a tool ${art(j)} uses`, `Name something ${art(j)} wears`, `Name something ${art(j)} might say`);
-  for (const e of EVENTS) out.push(`Name something you'd see ${e}`, `Name something you'd need ${e}`);
-  for (const s of SPORT) out.push(`Name a sport played with ${s}`);
+export function generatePrompts() { // -> [{ q: prompt, f: pattern }]
+  const out = [], add = (f, ...qs) => qs.forEach(q => out.push({ q, f }));
+  for (const p of PLACES) add('place', `Name something you'd find ${p}`);
+  for (const [p, adjs] of Object.entries(RICH)) for (const a of adjs) add('place', `Name something ${a} you'd find ${p}`);
+  for (const v of VERBS) add('verb', `Name something you can ${v}`);
+  for (const h of HAS) add('has', `Name something that ${h}`);
+  for (const f of FOOD) add('food', `Name a food that is ${f}`);
+  for (const m of MEALS) add('food', `Name something you'd eat ${m}`);
+  for (const a of ANIMAL) add('animal', `Name an animal that ${a}`);
+  for (const r of REGIONS) add('geo', `Name a country in ${r}`, `Name a city in ${r}`, `Name a river in ${r}`, `Name a capital city in ${r}`, `Name a food from ${r}`);
+  for (const c of CITY_IN) add('geo', `Name a city in ${c}`, `Name a food from ${c}`, `Name something ${c} is famous for`);
+  for (const j of JOBS) add('job', `Name a tool ${art(j)} uses`, `Name something ${art(j)} wears`, `Name something ${art(j)} might say`);
+  for (const e of EVENTS) add('event', `Name something you'd see ${e}`, `Name something you'd need ${e}`);
+  for (const s of SPORT) add('sport', `Name a sport played with ${s}`);
   return uniq(out);
 }

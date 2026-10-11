@@ -14,8 +14,17 @@ const GKEY = process.env.GEMINI_API_KEY || ''; // free alternative: https://aist
 const GMODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-haiku-5-5';
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
-const QUESTIONS = JSON.parse(fs.readFileSync(path.join(__dirname, 'questions.json'), 'utf8'));
-const GENERATED = (() => { const seen = new Set(QUESTIONS.map(q => q.toLowerCase().replace(/[^a-z0-9]/g, ''))); return generatePrompts().filter(q => !seen.has(q.toLowerCase().replace(/[^a-z0-9]/g, ''))); })();
+const RAW_QUESTIONS = JSON.parse(fs.readFileSync(path.join(__dirname, 'questions.json'), 'utf8'));
+const QUESTIONS = (() => { const base = new Set(RAW_QUESTIONS.map(q => q.toLowerCase().replace(/^name an? /, ''))); return RAW_QUESTIONS.filter(q => !(/^Name a type of /.test(q) && base.has(q.toLowerCase().replace(/^name a type of /, '')))); })(); // drops "Name a type of X" when "Name a X" exists
+const FAMILY = new Map(); // generated prompt -> its pattern ('place', 'animal', ...)
+const GENERATED = (() => { const seen = new Set(QUESTIONS.map(q => q.toLowerCase().replace(/[^a-z0-9]/g, ''))); return generatePrompts().filter(x => !seen.has(x.q.toLowerCase().replace(/[^a-z0-9]/g, ''))).map(x => (FAMILY.set(x.q, x.f), x.q)); })();
+/* variety: two prompts in one dive may not share a topic word (garage, city, animal...) or a generated pattern */
+const STOP = new Set('name something someone that this with from your youd would could might find there have type kind famous thing things people very often start starts letter word words made make uses wear wears into what which when where some more most other than been being under over about'.split(' '));
+const topicCache = new Map();
+const topics = q => { let t = topicCache.get(q); if (!t) { t = q.toLowerCase().replace(/[^a-z ]/g, ' ').split(/\s+/).map(w => w.replace(/ies$/, 'y').replace(/(?<!s)s$/, '')).filter(w => w.length > 3 && !STOP.has(w)); topicCache.set(q, t); } return t; };
+const famOf = q => FAMILY.get(q) || (/^Name something (\w+ )?(you'd find |in |at |on )/.test(q) ? 'place' : /^Name something that /.test(q) ? 'has' : /^Name something you can /.test(q) ? 'verb' : null); // hand-written prompts share some patterns too
+const fits = (q, chosen) => chosen.every(c => !topics(c).some(w => topics(q).includes(w)) && (!famOf(q) || famOf(q) !== famOf(c)));
+function takeFrom(queue, k, chosen) { const out = []; for (let i = 0; i < queue.length && out.length < k; i++) if (fits(queue[i], [...chosen, ...out])) { out.push(queue[i]); queue.splice(i--, 1); } return out; }
 const ROUNDS = 7, MAXPTS = 125, TIME = 20; // TIME = seconds per prompt (timer runs in the browser)
 const EPOCH = Date.UTC(2026, 9, 1); // daily dive #1
 
@@ -25,7 +34,8 @@ const SCORES_FILE = path.join(DATA_DIR, 'scores.json');
 let scores = {};
 try { scores = JSON.parse(fs.readFileSync(SCORES_FILE, 'utf8')); } catch {}
 let saveTimer = null;
-const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => fs.writeFile(SCORES_FILE, JSON.stringify(scores), () => {}), 500); };
+let scoresVersion = 0;
+const persist = () => { scoresVersion++; clearTimeout(saveTimer); saveTimer = setTimeout(() => fs.writeFile(SCORES_FILE, JSON.stringify(scores), () => {}), 500); };
 const today = () => new Date().toISOString().slice(0, 10);
 const dayNum = d => Math.round((Date.parse(d) - EPOCH) / 864e5) + 1;
 /* daily answer counts: day -> [{n, a:{answerKey:count}} per prompt]; only today is kept */
@@ -40,15 +50,27 @@ const id = (n = 8) => crypto.randomBytes(n).toString('hex');
 const clean = (s, n) => String(s ?? '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, n);
 const BANK_N = 4; // per game: 4 hand-written prompts + 3 generated ones
 function shuffle(a, rnd = n => crypto.randomInt(n)) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-function pick() { return shuffle([...shuffle(QUESTIONS).slice(0, BANK_N), ...shuffle(GENERATED).slice(0, ROUNDS - BANK_N)]); }
+function pick() { // practice/multiplayer: random, varied, and never today's daily prompts
+  const skip = new Set(daily(today())), bank = shuffle(QUESTIONS.filter(q => !skip.has(q))), gen = shuffle(GENERATED.filter(q => !skip.has(q)));
+  const b = takeFrom(bank, BANK_N, []); return shuffle([...b, ...takeFrom(gen, ROUNDS - BANK_N, b)]);
+}
 const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 function seeded(seed) { let a = crypto.createHash('sha256').update(seed).digest().readUInt32LE(0); return n => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return Math.floor((((t ^ (t >>> 14)) >>> 0) / 4294967296) * n); }; }
-// Daily dives walk through fixed shuffles of both lists, so no prompt repeats until a list runs out
-// (about 170 days for the hand-written bank, longer for generated ones). Editing the lists reshuffles future days.
-const BANK_ORDER = shuffle(QUESTIONS, seeded('deepdive-bank')), GEN_ORDER = shuffle(GENERATED, seeded('deepdive-gen'));
+// Daily dives work through shuffled queues of both lists, so no prompt repeats until a list is used up.
+// Prompts skipped for variety stay at the front of the queue for the next day. Editing the lists reshuffles future days.
+const LEGACY_LAST = 11; // days up to #11 used the earlier picker; kept so those results still match their prompts
+const legacyBank = shuffle(RAW_QUESTIONS, seeded('deepdive-bank')), legacyGen = shuffle(GENERATED, seeded('deepdive-gen'));
+const schedule = [], bankQ = [], genQ = []; let refill = 0;
 function daily(d) { // same seven prompts for everyone on day d
-  const n = Math.max(0, dayNum(d)), take = (list, k) => Array.from({ length: k }, (_, i) => list[(n * k + i) % list.length]);
-  return shuffle([...take(BANK_ORDER, BANK_N), ...take(GEN_ORDER, ROUNDS - BANK_N)], seeded('deepdive-day:' + d));
+  const n = Math.max(1, dayNum(d));
+  if (n <= LEGACY_LAST) { const take = (list, k) => Array.from({ length: k }, (_, i) => list[(n * k + i) % list.length]); return shuffle([...take(legacyBank, BANK_N), ...take(legacyGen, ROUNDS - BANK_N)], seeded('deepdive-day:' + d)); }
+  while (LEGACY_LAST + schedule.length < n) {
+    if (bankQ.length < 60) bankQ.push(...shuffle(QUESTIONS, seeded('deepdive-bank:' + refill++)));
+    if (genQ.length < 60) genQ.push(...shuffle(GENERATED, seeded('deepdive-gen:' + refill++)));
+    const b = takeFrom(bankQ, BANK_N, []);
+    schedule.push(shuffle([...b, ...takeFrom(genQ, ROUNDS - BANK_N, b)], seeded('deepdive-day:' + (LEGACY_LAST + schedule.length + 1))));
+  }
+  return schedule[n - LEGACY_LAST - 1];
 }
 
 /* ---------- AI judge (server-side, key never reaches the browser) ---------- */
@@ -107,7 +129,7 @@ function saveScore(g) { // only the daily dive is ranked; practice and multiplay
   if (g.saved || g.answers.length < ROUNDS || !g.day) return;
   g.saved = true;
   const o = scores[g.uid] || {}, d = g.day;
-  scores[g.uid] = { name: g.name, best: Math.max(o.best || 0, g.total), day: d, dayBest: g.total, games: (o.games || 0) + 1, log: g.answers.map(x => [x.a, x.pts, x.rarity, x.krill ? 1 : 0]) };
+  scores[g.uid] = { name: g.name, best: Math.max(o.best || 0, g.total), day: d, dayBest: g.total, games: (o.games || 0) + 1, prompts: g.prompts, log: g.answers.map(x => [x.a, x.pts, x.rarity, x.krill ? 1 : 0]) };
   persist();
 }
 const dailyInfo = uid => { const d = today(), s = scores[uid]; const done = !!s && s.day === d && s.dayBest !== undefined && !!s.log; return { day: d, num: dayNum(d), done, total: done ? s.dayBest : 0, log: done ? s.log : null, time: TIME }; };
@@ -124,25 +146,26 @@ const limited = (req, max) => { const k = req.ip + '|' + max + '|' + Math.floor(
 app.get('/api/health', (_, res) => res.json({ ok: true, ai: KEY ? 'anthropic' : GKEY ? 'gemini' : false, questions: QUESTIONS.length, generated: GENERATED.length }));
 
 app.get('/api/leaderboard', (_, res) => {
+  res.set('Cache-Control', 'no-store'); // every device polls this for live updates
   const d = today(), rows = Object.entries(scores).map(([uid, s]) => ({ id: uid.slice(0, 6), name: s.name, best: s.best, dayBest: s.day === d ? s.dayBest : 0 }));
   const top = k => rows.filter(r => r[k] > 0).sort((a, b) => b[k] - a[k]).slice(0, 10).map(r => ({ id: r.id, name: r.name, v: r[k] }));
-  res.json({ all: top('best'), day: top('dayBest') });
+  res.json({ all: top('best'), day: top('dayBest'), v: scoresVersion });
 });
 
 app.post('/api/daily', (req, res) => {
   const uid = clean(req.body.uid, 40);
   const info = dailyInfo(uid);
-  if (info.done) info.prompts = daily(info.day);
+  if (info.done) info.prompts = scores[uid].prompts || daily(info.day);
   res.json(info);
 });
 
 app.post('/api/game', (req, res) => {
-  if (limited(req, 20)) return res.status(429).json({ error: 'slow down' });
+  if (limited(req, 120)) return res.status(429).json({ error: 'slow down' }); // per network: a class on one wifi shares this
   const uid = clean(req.body.uid, 40), name = clean(req.body.name, 16) || 'Krill';
   if (uid.length < 8) return res.status(400).json({ error: 'bad uid' });
   if (req.body.mode !== 'daily') { const prompts = pick(); return res.json({ gameId: newGame(uid, name, prompts), prompts, time: TIME }); }
   const info = dailyInfo(uid);
-  if (info.done) return res.json({ ...info, prompts: daily(info.day) });
+  if (info.done) return res.json({ ...info, prompts: scores[uid].prompts || daily(info.day) });
   const key = uid + '|' + info.day, old = games.get(dailyGames.get(key));
   if (old) return res.json({ gameId: dailyGames.get(key), prompts: old.prompts, num: info.num, time: TIME, resume: { i: old.answers.length, total: old.total, log: old.answers.map(x => [x.a, x.pts, x.rarity, x.krill ? 1 : 0]) } });
   const prompts = daily(info.day), gid = newGame(uid, name, prompts, null, info.day);
@@ -151,7 +174,7 @@ app.post('/api/game', (req, res) => {
 });
 
 app.post('/api/answer', async (req, res) => {
-  if (limited(req, 90)) return res.status(429).json({ error: 'slow down' });
+  if (limited(req, 600)) return res.status(429).json({ error: 'slow down' });
   const g = games.get(String(req.body.gameId));
   const answer = clean(req.body.answer, 60);
   if (!g || (answer.length < 2 && !req.body.skip)) return res.status(400).json({ error: 'bad request' });
@@ -186,56 +209,71 @@ app.post('/api/finish', (req, res) => {
 });
 
 /* ---------- multiplayer rooms (websocket) ---------- */
+// Each browser tab holds a "seat" token. If a phone locks or the network blips, the seat is kept for
+// GRACE ms so the player can reconnect (or reload the page) and carry on where they were.
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 2048 });
 const rooms = new Map(); // code -> {code, go, prompts, players: Map(pid -> p)}
+const GRACE = 60000, MAX_PLAYERS = 12;
+const send = (ws, m) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(m)); };
 
 function pushState(room) {
-  const players = [...room.players.values()].map(p => ({ id: p.id, name: p.name, host: p.host, score: p.score, q: p.q, done: p.done }));
+  const players = [...room.players.values()].map(p => ({ id: p.id, name: p.name, host: p.host, score: p.score, q: p.q, done: p.done, away: !p.ws }));
   for (const p of room.players.values()) {
-    if (p.ws.readyState !== 1) continue;
     const msg = { t: 'state', code: room.code, you: p.id, go: room.go, players };
     if (room.go && p.gid) { msg.gid = p.gid; msg.prompts = room.prompts; }
-    p.ws.send(JSON.stringify(msg));
+    send(p.ws, msg);
   }
 }
 function enroll(room, p) { // give a player a game for the current round
   p.score = 0; p.q = 0; p.done = false;
   p.gid = newGame(p.uid, p.name, room.prompts, g => { p.score = g.total; p.q = g.answers.length; p.done = g.answers.length >= ROUNDS; pushState(room); });
 }
-function leaveRoom(p) {
+function removePlayer(p) {
   const room = p.room; if (!room) return;
-  room.players.delete(p.id); p.room = null;
+  clearTimeout(p.graceTimer); room.players.delete(p.id); p.room = null;
   if (!room.players.size) { rooms.delete(room.code); return; }
-  if (p.host) [...room.players.values()][0].host = true;
+  if (p.host) { const next = [...room.players.values()].find(x => x.ws) || [...room.players.values()][0]; next.host = true; }
   pushState(room);
 }
-wss.on('connection', (ws, req) => {
-  const p = { id: id(4), ws, room: null, host: false, name: 'Krill', uid: '', score: 0, q: 0, done: false, gid: null, alive: true };
-  ws.on('pong', () => { p.alive = true; });
+function dropConnection(p) { // socket gone: hold the seat for a while instead of removing the player
+  if (!p.room || !p.ws) return;
+  p.ws = null; pushState(p.room);
+  clearTimeout(p.graceTimer); p.graceTimer = setTimeout(() => { if (!p.ws) removePlayer(p); }, GRACE);
+  if (p.host) { const live = [...p.room.players.values()].find(x => x.ws); if (live) { p.host = false; live.host = true; pushState(p.room); } } // keep someone able to start rounds
+}
+wss.on('connection', ws => {
+  let p = null; // the seat this socket is attached to
+  ws.alive = true;
+  ws.on('pong', () => { ws.alive = true; });
   ws.on('message', raw => {
     let m; try { m = JSON.parse(raw); } catch { return; }
-    if (m.t === 'join' && !p.room) {
-      const code = clean(m.code, 4).toUpperCase();
-      if (!/^[A-Z]{4}$/.test(code)) return ws.send(JSON.stringify({ t: 'err', msg: 'bad code' }));
-      p.name = clean(m.name, 16) || 'Krill'; p.uid = clean(m.uid, 40) || id();
+    if (m.t === 'join' && !p) {
+      const code = clean(m.code, 4).toUpperCase(), seat = clean(m.seat, 40);
+      if (!/^[A-Z]{4}$/.test(code)) return send(ws, { t: 'err', msg: 'bad code' });
       let room = rooms.get(code);
-      if (m.create) { if (room) return ws.send(JSON.stringify({ t: 'err', msg: 'code taken' })); room = { code, go: 0, prompts: [], players: new Map() }; rooms.set(code, room); p.host = true; }
-      else if (!room) return ws.send(JSON.stringify({ t: 'err', msg: 'room not found' }));
-      if (room.players.size >= 12) return ws.send(JSON.stringify({ t: 'err', msg: 'room full' }));
-      p.room = room; room.players.set(p.id, p);
+      if (m.create) { if (room) return send(ws, { t: 'err', msg: 'code taken' }); room = { code, go: 0, prompts: [], players: new Map() }; rooms.set(code, room); }
+      else if (!room) return send(ws, { t: 'err', msg: 'room not found' });
+      const back = seat && [...room.players.values()].find(x => x.seat === seat);
+      if (back) { // reconnecting: take the seat over, close any stale socket
+        clearTimeout(back.graceTimer); if (back.ws && back.ws !== ws) back.ws.terminate();
+        p = back; p.ws = ws; pushState(room); return;
+      }
+      if (room.players.size >= MAX_PLAYERS) return send(ws, { t: 'err', msg: 'room full' });
+      p = { id: id(4), seat: seat || id(), ws, room, host: !!m.create, name: clean(m.name, 16) || 'Krill', uid: clean(m.uid, 40) || id(), score: 0, q: 0, done: false, gid: null };
+      room.players.set(p.id, p);
       if (room.go) enroll(room, p);
       pushState(room);
-    } else if (m.t === 'start' && p.room && p.host) {
+    } else if (m.t === 'start' && p?.room && p.host) {
       const room = p.room;
-      if ([...room.players.values()].some(x => x.q > 0 && !x.done)) return; // round still running
+      if ([...room.players.values()].some(x => x.ws && x.q > 0 && !x.done)) return pushState(room); // round still running
       room.go = Date.now(); room.prompts = pick();
       for (const x of room.players.values()) enroll(room, x);
       pushState(room);
-    } else if (m.t === 'leave') leaveRoom(p);
+    } else if (m.t === 'leave' && p) { removePlayer(p); p = null; }
   });
-  ws.on('close', () => leaveRoom(p));
+  ws.on('close', () => { if (p && p.ws === ws) dropConnection(p); });
 });
-setInterval(() => { for (const ws of wss.clients) { /* heartbeat */ } for (const r of rooms.values()) for (const p of r.players.values()) { if (!p.alive) { p.ws.terminate(); continue; } p.alive = false; p.ws.ping(); } }, 30000);
+setInterval(() => { for (const ws of wss.clients) { if (!ws.alive) { ws.terminate(); continue; } ws.alive = false; ws.ping(); } }, 20000); // heartbeat: notice dead phones
 
 server.listen(PORT, () => console.log(`Deepdive on :${PORT} (AI judging ${KEY ? 'Anthropic' : GKEY ? 'Gemini' : 'OFF - set GEMINI_API_KEY or ANTHROPIC_API_KEY'}, ${QUESTIONS.length} + ${GENERATED.length} generated questions)`));
