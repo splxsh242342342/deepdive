@@ -281,6 +281,21 @@ button.flag,button.flag:hover{display:block;width:auto;min-height:32px;margin:10
 .tgl{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:15px;cursor:pointer}
 .tgl input{flex:none;width:20px;height:20px;margin:0;padding:0;accent-color:var(--aqua)}
 .tut{margin:0 0 16px;padding-left:20px;line-height:1.5}.tut li{display:list-item;padding:6px 0;border:0;font-size:15px}
+/* multiplayer extras */
+.chips.c3{grid-template-columns:repeat(3,1fr)}
+button.kick,button.kick:hover{flex:none;width:auto;min-height:30px;margin:0;padding:3px 10px;border-radius:8px;background:#ff7a8a14!important;border:1px solid #ff7a8a40;color:#ffb3bd;font-size:12px;box-shadow:none}
+.reacts{display:flex;justify-content:center;gap:8px;margin:14px 0 4px}
+button.rx,button.rx:hover{width:46px;height:46px;min-height:0;margin:0;padding:0;border-radius:50%;background:#ffffff08!important;border:1px solid var(--edge);font-size:22px;box-shadow:none}
+.rxf{position:fixed;bottom:90px;z-index:8;display:flex;flex-direction:column;align-items:center;pointer-events:none;animation:rxf 2.6s var(--ease-out) forwards}
+.rxf span{font-size:34px}.rxf b{font-size:12px;color:var(--mut);background:#08142acc;padding:1px 8px;border-radius:99px}
+@keyframes rxf{0%{opacity:0;transform:translateY(10px)}12%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-140px)}}
+.others{margin-top:12px;display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.oa{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:99px;background:#ffffff08;border:1px solid var(--edge);font-size:13px}
+.oa .av{width:22px;height:22px;font-size:11px}.oa i{font-style:normal;color:var(--aqua)}.oa .kb{margin-left:0}
+.yd .oa{margin:4px 6px 0 0}
+.wait{font-size:13px;color:var(--mut)}
+.everyone{margin-top:14px;text-align:left}.everyone summary{cursor:pointer;padding:8px 0;font-weight:700;color:var(--mut);text-align:center}
+@media(prefers-reduced-motion:reduce){.rxf{animation:none;opacity:1}}
 /* question-count picker */
 .sz{margin:16px 0 4px;text-align:center}.sz>span{display:block;margin-bottom:8px;font-size:14px;font-weight:600;color:var(--mut)}
 .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
@@ -478,27 +493,28 @@ function invite(code){scr('mp');$('rm').innerHTML=''; // opened from an invite l
  const go=()=>{name();joinRoom(code,false)};$('jn').onclick=go;$('nk').onkeydown=e=>{if(e.key==='Enter')go()};$('bk').onclick=()=>nav(home);
  setTimeout(()=>{const n=$('nk');if(n){n.focus();n.select()}},300)}
 function mpHub(){scr('mp');$('rm').innerHTML='';
- paint(`<div class="q"><h2>Multiplayer</h2><p class="note" style="margin:-8px 0 18px">Race friends through the same prompts. The host picks how many.</p><button id="mk" style="margin-top:0">Create room</button><div class="or">or join with a code</div><div class="row"><input id="cd" maxlength="4" placeholder="CODE" aria-label="Room code" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase"><button id="jn" class="alt">Join</button></div><div class="note" id="mn" aria-live="polite"></div><button class="alt" id="bk">Back</button></div>`,true);
- $('mk').onclick=()=>joinRoom(newCode(),true);
+ paint(`<div class="q"><h2>Multiplayer</h2><p class="note" style="margin:-8px 0 18px">Race friends through the same prompts. The host picks how many.</p><button id="mk" style="margin-top:0">Create room</button><button id="qm" class="alt">Quick match</button><p class="note" style="margin-top:6px">Quick match drops you into a public room with other players.</p><div class="or">or join with a code</div><div class="row"><input id="cd" maxlength="4" placeholder="CODE" aria-label="Room code" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase"><button id="jn" class="alt">Join</button></div><div class="note" id="mn" aria-live="polite"></div><button class="alt" id="bk">Back</button></div>`,true);
+ $('mk').onclick=()=>joinRoom(newCode(),true);$('qm').onclick=()=>joinRoom(null,false,false,true);
  $('jn').onclick=()=>{const c=$('cd').value.trim().toUpperCase();if(c.length!==4)shk($('cd'));else joinRoom(c,false)};
  $('cd').onkeydown=e=>{if(e.key==='Enter')$('jn').click()};
  $('bk').onclick=()=>nav(home)}
 const newCode=()=>Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random()*24)]).join('');
 let notice='';
-async function joinRoom(c,host,rejoin){const say=t=>{const m=$('mn');if(m)m.textContent=t};
+async function joinRoom(c,host,rejoin,quick){const say=t=>{const m=$('mn');if(m)m.textContent=t};
  if(!RM||!RM.join){say('Rooms are unavailable here.');return}
- const btn=rejoin?null:host?$('mk'):$('jn');if(btn&&btn.disabled)return;load(btn,true);say('');
- try{room=await RM.join('r'+c,{code:c,host:!!host,name:nick})}catch(e){room=null;load(btn,false);
+ const btn=rejoin?null:quick?$('qm'):host?$('mk'):$('jn');if(btn&&btn.disabled)return;load(btn,true);say('');
+ try{room=await RM.join('r'+c,{code:c,host:!!host,quick:!!quick,name:nick})}catch(e){room=null;load(btn,false);
   if(rejoin){try{sessionStorage.removeItem('dd_room')}catch(x){}return}
   if(host&&e.message==='code taken'){load(btn,false);return joinRoom(newCode(),true)}
-  say(e.message==='room not found'?'No room with that code. Check it and try again.':e.message==='room full'?'That room is full (12 players).':"Couldn't reach the server. Try again.");return}
- roomCode=c;curRound=0;peers=[];lobbyIds=new Set();
- room.onGone=()=>{room=null;notice='That room closed, probably because the server restarted. Start a new room to keep playing.';home()};
+  say(e.message==='removed'?'The host removed you from that room.':e.message==='room not found'?'No room with that code. Check it and try again.':e.message==='room full'?'That room is full (12 players).':"Couldn't reach the server. Try again.");return}
+ roomCode=room.code||c;curRound=0;peers=[];lobbyIds=new Set();
+ room.onReact=floatReact;
+ room.onGone=msg=>{room=null;notice=msg==='removed'?'The host removed you from that room.':'That room closed, probably because the server restarted. Start a new room to keep playing.';home()};
  unsubP=room.onPeers(ch=>{peers=ch.peers;roomTick()});
  room.presence({name:nick,host:!!host,score:0,q:0,done:false,go:0});
  const m=room.me;
  if(rejoin&&room.go&&room.gid&&m){curRound=room.go; // came back mid-round: pick up where this seat was
-  if(m.done){scr('end');drawResults(true)}else{start(room.prompts.map(q=>({q})),room.gid,{resume:{i:m.q,total:m.score,log:Array.from({length:m.q},()=>['…',0,0,0])}});drawRace()}
+  if(m.done){scr('end');drawResults(true)}else{start(room.prompts.map(q=>({q})),room.gid,{time:room.time,resume:{i:m.q,total:m.score,log:Array.from({length:m.q},()=>['…',0,0,0])}});drawRace()}
   return}
  nav(()=>{scr('lobby');drawLobby(true)})}
 const viewers=()=>peers.filter(p=>p.kind==='viewer'&&p.presence&&p.presence.name!==undefined);
@@ -506,15 +522,35 @@ const me=()=>viewers().find(p=>p.isMe&&p.sameTab);
 function isHost(){const v=viewers(),m=me();if(!m)return false;const hs=v.filter(p=>p.presence.host);return hs.length?hs.some(p=>p.peer===m.peer):v.map(p=>p.peer).sort()[0]===m.peer}
 function roomTick(){if(!room)return;const s=document.body.dataset.s,g=Math.max(0,...viewers().map(p=>+p.presence.go||0));
  if(g&&g!==curRound&&(s==='lobby'||s==='end')){startRound(g);return}
- if(s==='lobby')drawLobby();else if(s==='game')drawRace();else if(s==='end')drawResults()}
+ if(s==='lobby')drawLobby();else if(s==='game'){drawRace();drawOthers()}else if(s==='end')drawResults()}
 let lobbyIds=new Set();
+const REACTS=['👏','😂','🤯','🔥','🐟'];
+const reactBar=()=>`<div class="reacts" role="group" aria-label="Send a reaction">${REACTS.map(e=>`<button class="rx" data-e="${e}" aria-label="React ${e}">${e}</button>`).join('')}</div>`;
+function floatReact(m){const el=document.createElement('div');el.className='rxf';el.style.left=(20+Math.random()*60)+'%';el.innerHTML=`<span>${m.e}</span><b>${esc(String(m.name).slice(0,16))}</b>`;
+ el.addEventListener('animationend',()=>el.remove());document.body.appendChild(el);setTimeout(()=>el.remove(),3000)}
+function wireRoomExtras(){document.querySelectorAll('.rx').forEach(b=>b.onclick=()=>room&&room.react(b.dataset.e));
+ document.querySelectorAll('.kick').forEach(b=>b.onclick=()=>{sheet(`<h2>Remove ${b.dataset.name}?</h2><p class="note" style="text-align:left">They'll leave the room and can't rejoin it.</p><button id="kYes">Remove</button><button id="kNo" class="alt">Cancel</button>`);
+  $('kYes').onclick=()=>{room&&room.kick(b.dataset.id);closeSheet()};$('kNo').onclick=()=>closeSheet()})}
+function everyone(v){if(!room||!room.prompts)return'';const rows=room.prompts.map((q,i)=>{const a=v.map(p=>{const x=(p.presence.ans||[])[i];return x?`<span class="oa">${av(p.presence.name)}<b>${esc(String(p.presence.name).slice(0,12))}</b> ${x[0]?esc(x[0]):'<em>no answer</em>'} <i>+${x[1]}</i>${x[2]?' <i class="kb">Krillion</i>':''}</span>`:''}).join('');
+  return a?`<li><span><small>${esc(q)}</small>${a}</span></li>`:''}).join('');
+ return rows?`<details class="everyone"><summary>Everyone's answers</summary><ul class="yd">${rows}</ul></details>`:''}
+/* after you answer, see what the others in the room said for that prompt (only once you've answered it) */
+function drawOthers(){const el=$('oth');if(!room||!G||!el||!$('a')||!$('a').disabled)return;const i=G.i;
+ const list=viewers().filter(p=>!(p.isMe&&p.sameTab)&&p.presence.ans&&p.presence.ans[i]);
+ el.hidden=false;el.innerHTML=list.length?list.map(p=>{const x=p.presence.ans[i];return`<span class="oa">${av(p.presence.name)}<b>${esc(String(p.presence.name).slice(0,12))}</b> ${x[0]?esc(x[0]):'<em>no answer</em>'} <i>+${x[1]}</i>${x[2]?' <i class="kb">Krillion</i>':''}</span>`}).join(''):'<span class="wait">Waiting for the others to answer…</span>'}
 const roundN=()=>room&&room.n||7;
-function sizePicker(){const n=roundN();return isHost()?`<div class="sz"><span>Questions per round</span><div class="chips" role="radiogroup" aria-label="Questions per round">${[3,5,7,10,15].map(k=>`<button class="chip${k===n?' on':''}" role="radio" aria-checked="${k===n}" data-n="${k}">${k}</button>`).join('')}</div></div>`:`<p class="note">${n} questions per round</p>`}
-function wireSize(){document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>{x.classList.toggle('on',x===c);x.setAttribute('aria-checked',x===c)});room.size(+c.dataset.n)})}
+const CATN={mixed:'Mixed',food:'Food',animals:'Animals',places:'Places',culture:'Pop culture',sport:'Sport'};
+const chipGroup=(label,key,opts,cur,fmt=v=>v,cls='')=>`<div class="sz"><span>${label}</span><div class="chips ${cls}" role="radiogroup" aria-label="${label}">${opts.map(v=>`<button class="chip${v===cur?' on':''}" role="radio" aria-checked="${v===cur}" data-k="${key}" data-v="${v}">${fmt(v)}</button>`).join('')}</div></div>`;
+function sizePicker(){const n=roundN(),t=room&&room.time||20,c=room&&room.cat||'mixed';
+ return isHost()?chipGroup('Questions per round','n',[3,5,7,10,15],n)+chipGroup('Seconds per question','time',[10,20,30],t,v=>v+'s','c3')+chipGroup('Category','cat',Object.keys(CATN),c,v=>CATN[v],'c3')
+  :`<p class="note">${n} questions · ${t}s each · ${CATN[c]}</p>`}
+function wireSize(){document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{const k=c.dataset.k,v=c.dataset.v;
+ document.querySelectorAll(`.chip[data-k="${k}"]`).forEach(x=>{x.classList.toggle('on',x===c);x.setAttribute('aria-checked',x===c)});
+ k==='n'?room.size(+v):room.set(k==='time'?{time:+v}:{cat:v})})}
 function drawLobby(enter){const v=viewers(),host=isHost(),copied=$('cp')&&$('cp').dataset.done;
- paint(`<div class="q left"><div style="text-align:center"><small>Room code</small><br><div class="codebox"><span class="code">${esc(roomCode)}</span></div><br><button class="alt sm" id="cp">${copied?'Link copied':'Copy invite link'}</button></div><h3>Players (${v.length})</h3><ul class="pl">${v.map(p=>`<li class="${!enter&&!lobbyIds.has(p.peer)?'new':''}">${av(p.presence.name)}<span class="nm">${esc(String(p.presence.name).slice(0,16))}</span>${p.presence.away?'<span class="tg">Reconnecting…</span>':''}${p.presence.host?'<span class="tg">Host</span>':''}${p.isMe&&p.sameTab?'<span class="tg">You</span>':''}</li>`).join('')}</ul>
+ paint(`<div class="q left"><div style="text-align:center"><small>Room code</small><br><div class="codebox"><span class="code">${esc(roomCode)}</span></div><br><button class="alt sm" id="cp">${copied?'Link copied':'Copy invite link'}</button></div><h3>Players (${v.length})</h3><ul class="pl">${v.map(p=>`<li class="${!enter&&!lobbyIds.has(p.peer)?'new':''}">${av(p.presence.name)}<span class="nm">${esc(String(p.presence.name).slice(0,16))}</span>${p.presence.away?'<span class="tg">Reconnecting…</span>':''}${p.presence.host?'<span class="tg">Host</span>':''}${p.isMe&&p.sameTab?'<span class="tg">You</span>':host?`<button class="kick" data-id="${esc(p.peer)}" data-name="${esc(String(p.presence.name).slice(0,16))}">Remove</button>`:''}</li>`).join('')}</ul>${room&&room.pub?'<p class="note">Public room: players using Quick match can join.</p>':''}${reactBar()}
  ${sizePicker()}<div class="note" style="text-align:center">${host?(v.length<2?'Waiting for friends to join…':'Everyone here? Start when ready.'):'Waiting for the host to start…'}</div>${host?'<button id="st">Start dive</button>':''}<button class="alt" id="lv">Leave room</button></div>`,enter);
- lobbyIds=new Set(v.map(p=>p.peer));if(copied)$('cp').dataset.done=1;wireSize();
+ lobbyIds=new Set(v.map(p=>p.peer));if(copied)$('cp').dataset.done=1;wireSize();wireRoomExtras();
  $('cp').onclick=async()=>{const url=location.origin+'/?room='+roomCode,b=$('cp');
   if(navigator.share&&matchMedia('(pointer:coarse)').matches){try{await navigator.share({title:'Deepdive',text:'Join my Deepdive room',url});return}catch(e){if(e.name==='AbortError')return}} // phones: the share sheet
   try{await navigator.clipboard.writeText(url);b.textContent='Link copied';b.dataset.done=1}catch(e){b.textContent=url}};
@@ -524,7 +560,7 @@ async function startRound(g){curRound=g;room.presence({score:0,q:0,done:false});
  const b=$('box');clearTimeout(b._t);b.classList.remove('box-in');b.classList.add('box-out');
  const c=$('count');for(const n of['3','2','1','GO']){c.textContent=n;AU.count(n==='GO');c.classList.remove('on');void c.offsetWidth;c.classList.add('on');await new Promise(r=>setTimeout(r,n==='GO'?500:800))}
  if(RMQ.matches)c.classList.remove('on');
- if(room&&curRound===g){if(room.prompts){start(room.prompts.map(q=>({q})),room.gid);drawRace()}}else if(!room)home()}
+ if(room&&curRound===g){if(room.prompts){start(room.prompts.map(q=>({q})),room.gid,{time:room.time});drawRace()}}else if(!room)home()}
 /* race strip: rows are kept and updated in place so bars slide and rows glide when the order changes */
 function drawRace(){if(!room)return;const v=viewers().sort((a,b)=>(+b.presence.score||0)-(+a.presence.score||0));
  let r=$('rm').querySelector('.race');if(!r){$('rm').innerHTML='<div class="race"></div>';r=$('rm').firstChild}
@@ -546,9 +582,9 @@ function podium(top){ // top: up to 3 of {name, v}, best first; drawn 2-1-3
 const rankRow=(r,i)=>`<li class="lr${r.me?' me':''}"${r.key?` data-k="${esc(r.key)}"`:''}><span class="rn">${i+1}</span>${trophy(i)}${av(r.name)}<span class="who"><b>${esc(String(r.name).slice(0,16))}${r.me?' <em>(you)</em>':''}</b><small>${esc(r.sub||rank(r.v))}</small></span><span class="val">${r.v} m</span></li>`;
 function drawResults(enter){$('rm').innerHTML='';const v=viewers().sort((a,b)=>(+b.presence.score||0)-(+a.presence.score||0)),pend=v.filter(p=>!p.presence.done).length,top=v.slice(0,3);
  paint(`<div class="q"><small>${pend?'Others still diving…':'Final results'}</small><h2>${pend?'Race in progress':'Dive complete'}</h2>${podium(top.map(p=>({name:p.presence.name,v:+p.presence.score||0})))}
- <ul class="pl ranks">${v.map((p,i)=>rankRow({name:p.presence.name,v:+p.presence.score||0,me:p.isMe&&p.sameTab,sub:p.presence.done?rank(+p.presence.score||0):p.presence.away?'Reconnecting…':`Diving · prompt ${Math.min(roundN(),(+p.presence.q||0)+1)} of ${roundN()}`},i)).join('')}</ul><div class="note">${esc(saveMsg)}</div>
+ <ul class="pl ranks">${v.map((p,i)=>rankRow({name:p.presence.name,v:+p.presence.score||0,me:p.isMe&&p.sameTab,sub:p.presence.done?rank(+p.presence.score||0):p.presence.away?'Reconnecting…':`Diving · prompt ${Math.min(roundN(),(+p.presence.q||0)+1)} of ${roundN()}`},i)).join('')}</ul>${everyone(v)}${reactBar()}<div class="note">${esc(saveMsg)}</div>
  ${isHost()?`${pend?'':sizePicker()}<button id="rm2" ${pend?'disabled':''}>Rematch</button>`:'<div class="note">The host can start a rematch.</div>'}<button class="alt" id="lv">Leave room</button></div>`,enter);
- wireSize();if(isHost())$('rm2').onclick=()=>{load($('rm2'),true);room.presence({go:Date.now()})};
+ wireSize();wireRoomExtras();if(isHost())$('rm2').onclick=()=>{load($('rm2'),true);room.presence({go:Date.now()})};
  $('lv').onclick=()=>nav(home)}
 function start(qs,gid,o={}){scr('game');G={qs,gid,i:0,tot:0,log:[],mode:o.mode||'room',num:o.num,TL:((o.time||20)+(o.mode&&o.mode!=='room'&&PREF.get('slow',false)?10:0))*1000};shown=0;
  if(o.resume){G.i=o.resume.i;G.tot=o.resume.total;G.log=o.resume.log}hud();G.i<G.qs.length?show():end()}
@@ -566,11 +602,11 @@ async function timeUp(){timerStop();const inp=$('a'),btn=$('go');if(!inp||busy)r
  let err=null;try{await api('/api/answer',{gameId:G.gid,i:G.i,skip:true})}catch(e){err=e}
  busy=false;load(btn,false);
  if(err){if(!apiErr(err)){btn.textContent='Retry';btn.onclick=timeUp}return}
- G.log.push(['',0,0,0]);AU.timeup();$('tw').classList.add('out');if(room)room.presence({score:G.tot,q:G.i+1});
+ G.log.push(['',0,0,0]);AU.timeup();$('tw').classList.add('out');if(room){room.presence({score:G.tot,q:G.i+1});setTimeout(drawOthers,50)}
  $('fb').innerHTML='<div class="pop"><span class="err">Time\'s up</span> <b>+0 m</b></div>';
  btn.textContent=G.i<G.qs.length-1?'Next':'See result';btn.focus({preventScroll:true});btn.onclick=()=>nav(()=>{G.i++;G.i<G.qs.length?show():end()})}
 function show(){const p=G.qs[G.i];
- paint(`<div class="q"><small>Prompt ${G.i+1} of ${G.qs.length}</small><div class="pips" aria-hidden="true">${G.qs.map((_,n)=>`<i class="${n<G.i?'d':n===G.i?'c':''}"></i>`).join('')}</div><div class="tw" id="tw"><div class="tt"><i id="tb"><i id="tbg"></i></i></div><span class="tp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg><span id="tn">${G.TL/1000}s</span></span></div><h2 id="qh">${esc(p.q)}</h2><input id="a" aria-labelledby="qh" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" placeholder="Your answer"><button id="go">Dive</button><div class="fb" id="fb" aria-live="polite"></div><button class="flag" id="flag" type="button">Report this question</button></div>`,true);
+ paint(`<div class="q"><small>Prompt ${G.i+1} of ${G.qs.length}</small><div class="pips" aria-hidden="true">${G.qs.map((_,n)=>`<i class="${n<G.i?'d':n===G.i?'c':''}"></i>`).join('')}</div><div class="tw" id="tw"><div class="tt"><i id="tb"><i id="tbg"></i></i></div><span class="tp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg><span id="tn">${G.TL/1000}s</span></span></div><h2 id="qh">${esc(p.q)}</h2><input id="a" aria-labelledby="qh" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" placeholder="Your answer"><button id="go">Dive</button><div class="fb" id="fb" aria-live="polite"></div>${room?'<div class="others" id="oth" hidden></div>':''}<button class="flag" id="flag" type="button">Report this question</button></div>`,true);
  const inp=$('a');inp.focus({preventScroll:true});setTimeout(()=>inp.scrollIntoView({block:'center',behavior:RMQ.matches?'auto':'smooth'}),250);inp.onkeydown=e=>{if(e.key==='Enter')go()};inp.oninput=()=>AU.key();$('flag').onclick=async()=>{const f=$('flag');f.disabled=true;try{await api('/api/report',{prompt:p.q});f.textContent="Thanks, we'll take a look"}catch(e){f.textContent="Couldn't send that";f.disabled=false}};$('go').onclick=go;timerStart(G.TL)}
 function shake(){once($('a'),'miss')}
 function celebrate(r){const card=$('fb').closest('.q');once(card,r.krill?'winK':'win');buzz(r.krill?[15,40,15]:10);r.krill?AU.krill():AU.correct(r.rarity)}
@@ -582,7 +618,7 @@ async function go(){if(busy||!T)return;const inp=$('a'),btn=$('go'),v=inp.value.
  if(!r.valid){once(inp,'miss');AU.bad();$('fb').innerHTML=`<span class="err pop">That's not a real answer. Try again.</span>`;inp.select();timerStart(left);return}
  const pts=r.pts,lab=r.krill?'One in a Krillion!':r.rarity<20?'Everyone says that':r.rarity<50?'Fairly common':r.rarity<80?'Uncommon':'Deep cut!';
  inp.disabled=true;$('tw').classList.add('out');G.tot+=pts;G.log.push([v,pts,r.rarity,r.krill?1:0]);hud();gain(pts);celebrate(r);
- if(room)room.presence({score:G.tot,q:G.i+1});
+ if(room){room.presence({score:G.tot,q:G.i+1});setTimeout(drawOthers,50)}
  const sub=r.krill?'Nobody has ever said that before.':G.mode==='daily'&&r.seen?`${r.seen} other diver${r.seen>1?'s':''} said this today`:(r.note||'');
  $('fb').innerHTML=`<div class="pop ${r.krill?'kr':r.rarity>=80?'rare':''}">${lab} <b>+${pts} m</b><br><small style="color:var(--mut)">${esc(sub)}</small></div>`;
  if(r.krill)banner('One in a Krillion');
@@ -736,20 +772,24 @@ const seatFor=c=>{try{let v=sessionStorage.getItem('dd_seat_'+c);if(!v){v=(crypt
 const net=(on,t)=>{const n=$('net');if(!n)return;n.textContent=t||'Reconnecting…';n.classList.toggle('on',!!on)};
 addEventListener('offline',()=>net(true,"You're offline"));addEventListener('online',()=>net(false));
 const RMAPI={join(name,o){return new Promise((resolve,reject)=>{
- let ws=null,st=null,h=null,opened=false,closed=false,tries=0,timer=null;const seat=seatFor(o.code);
- const emit=()=>{if(!h||!st)return;h({peers:st.players.map(p=>({peer:p.id,kind:'viewer',isMe:p.id===st.you,sameTab:p.id===st.you,presence:{name:p.name,score:p.score,q:p.q,done:p.done,host:p.host,away:p.away,go:st.go}}))})};
+ let ws=null,st=null,h=null,opened=false,closed=false,tries=0,timer=null;const seat=seatFor(o.code||'quick');
+ const emit=()=>{if(!h||!st)return;h({peers:st.players.map(p=>({peer:p.id,kind:'viewer',isMe:p.id===st.you,sameTab:p.id===st.you,presence:{name:p.name,score:p.score,q:p.q,done:p.done,host:p.host,away:p.away,go:st.go,ans:p.ans||[]}}))})};
  const room={prompts:null,gid:null,me:null,go:0,onGone:null,
   presence(p){if(p&&p.go&&ws&&ws.readyState===1)ws.send(JSON.stringify({t:'start'}))},
   size(n){if(ws&&ws.readyState===1)ws.send(JSON.stringify({t:'size',n}))},
+  set(o){if(ws&&ws.readyState===1)ws.send(JSON.stringify({t:'set',...o}))},
+  react(e){if(ws&&ws.readyState===1)ws.send(JSON.stringify({t:'react',e}))},
+  kick(id){if(ws&&ws.readyState===1)ws.send(JSON.stringify({t:'kick',id}))},onReact:null,
   onPeers(f){h=f;emit();return()=>{h=null}},
   leave(){closed=true;clearTimeout(timer);net(false);try{ws.send(JSON.stringify({t:'leave'}))}catch(e){}try{ws.close()}catch(e){}try{sessionStorage.removeItem('dd_room')}catch(e){}},
   wake(){if(!closed&&opened&&(!ws||ws.readyState>1)){clearTimeout(timer);tries=0;connect()}}};
  function connect(){ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');const me=ws;
-  ws.onopen=()=>me.send(JSON.stringify({t:'join',code:o.code,name:o.name,uid:UID,seat,create:!!o.host&&!opened}));
+  ws.onopen=()=>me.send(JSON.stringify({t:'join',code:opened?room.code:o.code,quick:!!o.quick&&!opened,name:o.name,uid:UID,seat,create:!!o.host&&!opened}));
   ws.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(x){return}
    if(m.t==='err'){closed=true;net(false);if(!opened)reject(new Error(m.msg));else if(room.onGone)room.onGone(m.msg);try{me.close()}catch(x){}return}
-   if(m.t==='state'){st=m;tries=0;net(false);room.prompts=m.prompts||null;room.gid=m.gid||null;room.go=m.go||0;room.n=m.n||7;room.me=m.players.find(p=>p.id===m.you)||null;
-    if(!opened){opened=true;try{sessionStorage.setItem('dd_room',o.code)}catch(x){}resolve(room)}emit()}};
+   if(m.t==='react'){if(room.onReact)room.onReact(m);return}
+   if(m.t==='state'){st=m;tries=0;net(false);room.prompts=m.prompts||null;room.gid=m.gid||null;room.go=m.go||0;room.n=m.n||7;room.time=m.time||20;room.cat=m.cat||'mixed';room.pub=!!m.pub;room.code=m.code;room.me=m.players.find(p=>p.id===m.you)||null;
+    if(!opened){opened=true;try{sessionStorage.setItem('dd_room',m.code);sessionStorage.setItem('dd_seat_'+m.code,seat)}catch(x){}resolve(room)}emit()}};
   ws.onclose=()=>{if(closed||me!==ws)return;
    if(!opened&&tries>=2){closed=true;reject(new Error('closed'));return}
    if(opened)net(true);clearTimeout(timer);timer=setTimeout(connect,Math.min(8000,700*2**tries++))}}

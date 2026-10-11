@@ -107,7 +107,22 @@ const id = (n = 8) => crypto.randomBytes(n).toString('hex');
 const clean = (s, n) => String(s ?? '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, n);
 const BANK_N = 4; // per game: 4 hand-written prompts + 3 generated ones
 function shuffle(a, rnd = n => crypto.randomInt(n)) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-function pick(n = ROUNDS) { // practice/multiplayer: random, varied, and never today's daily prompts
+const CATS = {
+  food: /\b(food|fruit|vegetables?|dish|drinks?|eat|cheese|sauce|sweets?|snack|dessert|cake|bread|pizza|sandwich|breakfast|restaurant|cocktail|spice|herb|nuts?|soup|curry|biscuit|chocolate|smoothie|ingredient|cereal|pasta|meal|juice|tea|coffee|beer|wine|crisps?|toppings?)\b/i,
+  animals: /\b(animals?|birds?|fish|dogs?|cats?|insects?|mammals?|reptiles?|breed|creatures?|pets?|dinosaurs?|bugs?|spiders?|snakes?|horses?|sharks?|whales?|monkeys?)\b/i,
+  places: /\b(country|countries|city|cities|capital|river|island|landmark|mountain|state|county|town|continent|ocean|lake|europe|asia|africa|america|oceania|famous for)\b/i,
+  culture: /\b(film|movie|song|band|singer|character|tv|show|book|author|novel|novelist|video game|actor|actress|disney|cartoon|superhero|musician|artist|painting|app|website|brand|celebrity|youtuber|rapper|pokemon|marvel|sonic|villain|instrument)\b/i,
+  sport: /\b(sports?|team|football|soccer|player|olympic|athlete|club|golfer|tennis|racing|driver|referee)\b/i
+};
+const FAMILY_CAT = { animal: 'animals', food: 'food', geo: 'places', sport: 'sport' };
+const catOf = q => FAMILY_CAT[FAMILY.get(q)] || Object.keys(CATS).find(c => CATS[c].test(q)) || 'everyday';
+const ROOM_CATS = ['mixed', ...Object.keys(CATS)], ROOM_TIMES = [10, 20, 30];
+function pick(n = ROUNDS, cat = 'mixed') {
+  if (cat !== 'mixed') { // a themed round: only prompts from that category (falls back to mixed if there are too few)
+    const skip = new Set(daily(today())); for (const [q, c] of reports) if (c >= 3) skip.add(q);
+    const pool = shuffle([...QUESTIONS, ...GENERATED].filter(q => !skip.has(q) && catOf(q) === cat));
+    if (pool.length >= n * 2) { const out = takeFrom(pool, n, []); for (const q of pool) { if (out.length >= n) break; out.push(q); } return out; }
+  } // practice/multiplayer: random, varied, and never today's daily prompts
   const skip = new Set(daily(today())); for (const [q, n] of reports) if (n >= 3) skip.add(q);
   const bank = shuffle(QUESTIONS.filter(q => !skip.has(q))), gen = shuffle(GENERATED.filter(q => !skip.has(q)));
   const nb = Math.round(n * BANK_N / ROUNDS), b = takeFrom(bank, nb, []), g = takeFrom(gen, n - nb, b);
@@ -371,20 +386,22 @@ app.post('/api/finish', (req, res) => {
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 2048 });
 const rooms = new Map(); // code -> {code, go, prompts, players: Map(pid -> p)}
-const GRACE = 60000, MAX_PLAYERS = 12;
+const GRACE = 60000, MAX_PLAYERS = 12, REACTIONS = ['👏', '😂', '🤯', '🔥', '🐟'];
 const send = (ws, m) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(m)); };
 
 function pushState(room) {
-  const players = [...room.players.values()].map(p => ({ id: p.id, name: p.name, host: p.host, score: p.score, q: p.q, done: p.done, away: !p.ws }));
-  for (const p of room.players.values()) {
-    const msg = { t: 'state', code: room.code, you: p.id, go: room.go, n: room.n, players };
+  const all = [...room.players.values()];
+  for (const p of all) {
+    const seeUpTo = p.done ? Infinity : p.q; // you only see others' answers to prompts you have already answered
+    const players = all.map(x => ({ id: x.id, name: x.name, host: x.host, score: x.score, q: x.q, done: x.done, away: !x.ws, ans: (x.answers || []).slice(0, seeUpTo) }));
+    const msg = { t: 'state', code: room.code, you: p.id, go: room.go, n: room.n, time: room.time, cat: room.cat, pub: !!room.pub, players };
     if (room.go && p.gid) { msg.gid = p.gid; msg.prompts = room.prompts; }
     send(p.ws, msg);
   }
 }
 function enroll(room, p) { // give a player a game for the current round
-  p.score = 0; p.q = 0; p.done = false;
-  p.gid = newGame(p.uid, p.name, room.prompts, g => { p.score = g.total; p.q = g.answers.length; p.done = g.answers.length >= room.prompts.length; pushState(room); });
+  p.score = 0; p.q = 0; p.done = false; p.answers = [];
+  p.gid = newGame(p.uid, p.name, room.prompts, g => { p.score = g.total; p.q = g.answers.length; p.done = g.answers.length >= room.prompts.length; p.answers = g.answers.map(x => [x.a, x.pts, x.krill ? 1 : 0]); pushState(room); });
 }
 function removePlayer(p) {
   const room = p.room; if (!room) return;
@@ -406,29 +423,45 @@ wss.on('connection', ws => {
   ws.on('message', raw => {
     let m; try { m = JSON.parse(raw); } catch { return; }
     if (m.t === 'join' && !p) {
-      const code = clean(m.code, 4).toUpperCase(), seat = clean(m.seat, 40);
+      let code = clean(m.code, 4).toUpperCase(), create = !!m.create;
+      const seat = clean(m.seat, 40);
+      if (m.quick) { // quick match: a public room with space that isn't mid-round, or a new public room
+        const open = [...rooms.values()].find(r => r.pub && r.players.size < MAX_PLAYERS && ![...r.players.values()].some(x => x.ws && x.q > 0 && !x.done));
+        if (open) code = open.code; else { do code = Array.from({ length: 4 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[crypto.randomInt(24)]).join(''); while (rooms.has(code)); create = true; }
+      }
       if (!/^[A-Z]{4}$/.test(code)) return send(ws, { t: 'err', msg: 'bad code' });
       let room = rooms.get(code);
-      if (m.create) { if (room) return send(ws, { t: 'err', msg: 'code taken' }); room = { code, go: 0, n: ROUNDS, prompts: [], players: new Map() }; rooms.set(code, room); }
+      if (create) { if (room) return send(ws, { t: 'err', msg: 'code taken' }); room = { code, go: 0, n: ROUNDS, time: TIME, cat: 'mixed', pub: !!m.quick, banned: new Set(), prompts: [], players: new Map() }; rooms.set(code, room); }
       else if (!room) return send(ws, { t: 'err', msg: 'room not found' });
+      if (seat && room.banned.has(seat)) return send(ws, { t: 'err', msg: 'removed' });
       const back = seat && [...room.players.values()].find(x => x.seat === seat);
       if (back) { // reconnecting: take the seat over, close any stale socket
         clearTimeout(back.graceTimer); if (back.ws && back.ws !== ws) back.ws.terminate();
         p = back; p.ws = ws; pushState(room); return;
       }
       if (room.players.size >= MAX_PLAYERS) return send(ws, { t: 'err', msg: 'room full' });
-      p = { id: id(4), seat: seat || id(), ws, room, host: !!m.create, name: safeName(m.name), uid: clean(m.uid, 40) || id(), score: 0, q: 0, done: false, gid: null };
+      p = { id: id(4), seat: seat || id(), ws, room, host: create, react: 0, name: safeName(m.name), uid: clean(m.uid, 40) || id(), score: 0, q: 0, done: false, gid: null };
       room.players.set(p.id, p);
       if (room.go) enroll(room, p);
       pushState(room);
     } else if (m.t === 'start' && p?.room && p.host) {
       const room = p.room;
       if ([...room.players.values()].some(x => x.ws && x.q > 0 && !x.done)) return pushState(room); // round still running
-      room.go = Date.now(); room.prompts = pick(room.n);
+      room.go = Date.now(); room.prompts = pick(room.n, room.cat);
       for (const x of room.players.values()) enroll(room, x);
       pushState(room);
     } else if (m.t === 'size' && p?.room && p.host && ROUND_SIZES.includes(+m.n)) { // host picks how many questions a round has
       p.room.n = +m.n; pushState(p.room);
+    } else if (m.t === 'set' && p?.room && p.host) { // host: timer length and category
+      if (ROOM_TIMES.includes(+m.time)) p.room.time = +m.time;
+      if (ROOM_CATS.includes(m.cat)) p.room.cat = m.cat;
+      pushState(p.room);
+    } else if (m.t === 'react' && p?.room && REACTIONS.includes(m.e) && Date.now() - p.react > 700) { // emoji reactions, gently rate limited
+      p.react = Date.now();
+      for (const x of p.room.players.values()) send(x.ws, { t: 'react', from: p.id, name: p.name, e: m.e });
+    } else if (m.t === 'kick' && p?.room && p.host && m.id !== p.id) { // host removes a player; they can't come back to this room
+      const x = p.room.players.get(String(m.id)); if (!x) return;
+      p.room.banned.add(x.seat); send(x.ws, { t: 'err', msg: 'removed' }); x.ws?.close(); x.ws = null; removePlayer(x);
     } else if (m.t === 'leave' && p) { removePlayer(p); p = null; }
   });
   ws.on('close', () => { if (p && p.ws === ws) dropConnection(p); });

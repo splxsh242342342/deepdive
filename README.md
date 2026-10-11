@@ -30,6 +30,9 @@ It must be a host that keeps a Node process running (WebSockets). Static-only ho
    - The server creates its two tables (`deepdive_scores`, `deepdive_counts`) on first boot. The start log says `scores in Postgres`. If the database can't be reached at boot the server exits instead of starting with an empty leaderboard, so a broken deploy never replaces a working one.
    - Any other Postgres works too (Supabase, your own). Avoid Render's free Postgres: it is deleted after 30 days. Neon's free tier sleeps when idle; the first request after a quiet spell takes a second longer.
 
+5. Optional: add `ADMIN_KEY` (any long random text) to see which prompts players report at `/api/reports?key=YOUR_ADMIN_KEY`. Prompts reported 3+ times leave practice and multiplayer automatically.
+6. Optional, to avoid the ~30 second wake-up after the free server sleeps: create a free monitor at https://uptimerobot.com (or https://cron-job.org) that opens `https://YOUR-SITE/api/health` every 10 minutes. Render's free plan includes enough hours to stay awake all month for one service.
+
 Put it behind HTTPS (Render and Railway do this automatically). The client switches to `wss://` on its own.
 
 ## Costs and safety
