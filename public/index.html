@@ -12,8 +12,18 @@ h1{letter-spacing:.42em;margin:0;padding-left:.42em;font-size:15px;font-weight:7
 @keyframes bob{50%{transform:translateY(6px) rotate(6deg)}}
 .sub{color:var(--mut);font-size:13px}
 .hud{margin-bottom:20px}
-.bar{height:6px;background:#00000040;border-radius:99px;overflow:hidden}
-.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#5ad7ff,#9a6bff);transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.bar{position:relative;height:8px;border-radius:99px;background:#00000066;box-shadow:inset 0 1px 3px #000a,0 0 0 1px #ffffff14}
+/* fill slides in with transforms; the gradient layer counter-slides so colours stay pinned to the track */
+#bar,#barf,#barg,#tb,#tbg{position:absolute;inset:0;border-radius:99px}
+#bar,#barf,#tb{overflow:hidden}
+#barf,#barg{transition:transform 1.5s var(--ease-out)}
+#barf{transform:translateX(-100%)}#barg{transform:translateX(100%);background:linear-gradient(90deg,#7dffe6,#5ad7ff 25%,#6b8cff 50%,#9a6bff 75%,#ff7ad9)}
+#barf:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,#ffffff59,transparent) no-repeat;background-size:35% 100%;animation:sweep 3.2s ease-in-out infinite}
+@keyframes sweep{from{background-position:-50% 0}to{background-position:150% 0}}
+.bar b{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;border-radius:2px;background:#ffffff26;transition:background .5s,box-shadow .5s}
+.bar b.on{background:#ffffffb3;box-shadow:0 0 6px #7dffe6}
+.cap{position:absolute;inset:0;transform:translateX(-100%);opacity:0;transition:transform 1.5s var(--ease-out),opacity .4s;pointer-events:none}
+.cap:after{content:'';position:absolute;right:-6px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:radial-gradient(#fff,#bffff4 45%,#7dffe6);box-shadow:0 0 10px #7dffe6,0 0 22px #5ad7ff;animation:tw 2.4s ease-in-out infinite}
 .meta{display:flex;justify-content:space-between;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-top:8px}
 #depth{font-variant-numeric:tabular-nums;color:var(--fg);font-weight:600}
 .q,.panel{background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:var(--r);padding:24px 20px;text-align:center;margin-bottom:16px;box-shadow:inset 0 1px 0 #ffffff14,0 24px 60px -24px #000c}
@@ -142,10 +152,12 @@ body{overscroll-behavior-y:none}
 .pips i{width:6px;height:6px;border-radius:50%;background:#ffffff26;transition:background .3s,transform .3s var(--spring)}
 .pips i.d{background:var(--acc)}.pips i.c{background:var(--fg);transform:scale(1.35)}
 .tw{display:flex;align-items:center;gap:10px;margin-top:14px;transition:opacity .3s}
-.tt{flex:1;height:4px;border-radius:99px;background:#ffffff14;overflow:hidden}
-.tt i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#3dffd0,#5ad7ff);transform-origin:left;transition:background .4s}
-#tn{font-size:12px;min-width:26px;text-align:right;color:var(--mut);font-variant-numeric:tabular-nums}
-.tw.low .tt i{background:linear-gradient(90deg,#ff8a6b,#ffc46b)}.tw.low #tn{color:#ffc46b}
+.tt{position:relative;flex:1;height:7px;border-radius:99px;background:#00000066;box-shadow:inset 0 1px 3px #000a,0 0 0 1px #ffffff12;transition:box-shadow .4s}
+#tbg{background:linear-gradient(90deg,#ff6b81,#ffb86b 22%,#ffe08a 38%,#7dffe6 62%,#5ad7ff)}
+.tp{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:52px;padding:4px 9px;border-radius:99px;background:#ffffff0f;border:1px solid var(--line);font-size:12px;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums;transition:color .3s,border-color .3s,background .3s}
+.tp svg{width:13px;height:13px;flex:none}
+.tw.low .tp{color:#ffc46b;border-color:#ffc46b66;background:#ffc46b14;animation:beat 1s ease-in-out infinite}.tw.low .tt{box-shadow:inset 0 1px 3px #000a,0 0 0 1px #ffc46b33,0 0 14px #ff8a6b40}
+@keyframes beat{50%{transform:scale(1.07)}}
 .tw.hold{opacity:.55}.tw.out{opacity:.25}
 .err{color:var(--err);display:inline-block}
 .meta{position:relative}
@@ -192,7 +204,7 @@ body.dip main{animation:dip .6s var(--ease-out)}@keyframes dip{40%{transform:tra
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#count.on{opacity:1}}
 </style></head><body><div id="sea"></div><div id="deep"></div><div id="world" aria-hidden="true"><div id="snowF"></div><div id="scene"></div><div id="snowN"></div></div><div id="bub"></div><div id="rays"></div><div id="rail"><span id="mk2"></span></div><div id="zb"></div><div id="count"></div><div id="flash"></div><main>
 <header><h1>DEEPDIVE</h1><span class="krill"></span><div class="sub">Seven prompts. Rare answers sink you deeper.</div></header>
-<div class="hud"><span id="pm"></span><div class="bar"><i id="bar"></i></div>
+<div class="hud"><span id="pm"></span><div class="bar"><i id="bar"><i id="barf"><i id="barg"></i></i></i><b data-k="0.1714" style="left:17.14%"></b><b data-k="0.3429" style="left:34.29%"></b><b data-k="0.5143" style="left:51.43%"></b><b data-k="0.6857" style="left:68.57%"></b><b data-k="0.8571" style="left:85.71%"></b><b data-k="0.9714" style="left:97.14%"></b><span class="cap" id="cap"></span></div>
 <div class="meta"><span id="zone">Surface</span><span id="depth">0 m</span></div></div>
 <div id="rm"></div><div id="box"></div>
 </main><script>
@@ -207,7 +219,7 @@ function zone(t){let z=Z[0][1];for(const[a,n]of Z)if(t>=a)z=n;return z}
 function tween(from,to,el,suf){const tok=el._tw=(el._tw||0)+1,t0=performance.now();(function f(t){if(el._tw!==tok)return;const k=Math.min(1,(t-t0)/1100),e=1-Math.pow(1-k,3);el.textContent=Math.round(from+(to-from)*e)+suf;if(k<1)requestAnimationFrame(f)})(t0)}
 function hud(){const t=G?G.tot:0,k=Math.min(1,t/MAX),m=(a,b)=>Math.round(a+(b-a)*k);
  $('deep').style.opacity=k.toFixed(3);world(G?.05+k*.95:0);
- $('bar').style.width=k*100+'%';$('rays').style.opacity=1-k;document.documentElement.style.setProperty('--g',(0.7+k*1.4).toFixed(2));
+ $('barf').style.transform=`translateX(${((k-1)*100).toFixed(2)}%)`;$('barg').style.transform=`translateX(${((1-k)*100).toFixed(2)}%)`;$('cap').style.transform=`translateX(${((k-1)*100).toFixed(2)}%)`;$('cap').style.opacity=k>0?1:0;document.querySelectorAll('.bar b').forEach(b=>b.classList.toggle('on',k>=+b.dataset.k));$('rays').style.opacity=1-k;document.documentElement.style.setProperty('--g',(0.7+k*1.4).toFixed(2));
  $('mk2').style.top=k*100+'%';$('pm').style.left=Math.max(3,Math.min(97,k*100))+'%';
  if(t>shown)dive(t-shown);
  tween(shown,t,$('depth'),' m');shown=t;const zn=zone(t);
@@ -315,11 +327,13 @@ function start(qs,gid,o={}){scr('game');G={qs,gid,i:0,tot:0,log:[],mode:o.mode||
  if(o.resume){G.i=o.resume.i;G.tot=o.resume.total;G.log=o.resume.log}hud();G.i<7?show():end()}
 /* prompt timer: one linear transform transition drains the bar; it pauses while the answer is checked */
 let T=null;
+function setTimer(f,ms){const a=$('tb'),b=$('tbg');if(!a)return;const tr=ms?`transform ${ms}ms linear`:'none',x=((1-f)*100).toFixed(2);
+ a.style.transition=b.style.transition=tr;a.style.transform=`translateX(-${x}%)`;b.style.transform=`translateX(${x}%)`}
 function timerStart(ms){timerStop();const bar=$('tb');if(!bar||!G)return;T={end:performance.now()+ms};
- bar.style.transition='none';bar.style.transform=`scaleX(${ms/G.TL})`;void bar.offsetWidth;bar.style.transition=`transform ${ms}ms linear`;bar.style.transform='scaleX(0)';
+ setTimer(ms/G.TL,0);void bar.offsetWidth;setTimer(0,ms);
  T.to=setTimeout(timeUp,ms);T.iv=setInterval(tick,200);tick()}
 function tick(){if(!T)return;const left=Math.max(0,T.end-performance.now()),n=$('tn'),w=$('tw');if(n)n.textContent=Math.ceil(left/1000)+'s';if(w)w.classList.toggle('low',left<5000)}
-function timerPause(){if(!T)return 0;const left=Math.max(0,T.end-performance.now()),bar=$('tb');if(bar){bar.style.transition='none';bar.style.transform=`scaleX(${left/G.TL})`}timerStop();return left}
+function timerPause(){if(!T)return 0;const left=Math.max(0,T.end-performance.now()),bar=$('tb');if(bar)setTimer(left/G.TL,0);timerStop();return left}
 function timerStop(){if(T){clearTimeout(T.to);clearInterval(T.iv);T=null}}
 async function timeUp(){timerStop();const inp=$('a'),btn=$('go');if(!inp||busy)return;if($('tn'))$('tn').textContent='0s';busy=true;inp.disabled=true;load(btn,true);
  let err=null;try{await api('/api/answer',{gameId:G.gid,i:G.i,skip:true})}catch(e){err=e}
@@ -329,7 +343,7 @@ async function timeUp(){timerStop();const inp=$('a'),btn=$('go');if(!inp||busy)r
  $('fb').innerHTML='<div class="pop"><span class="err">Time\'s up</span> <b>+0 m</b></div>';
  btn.textContent=G.i<6?'Next':'See result';btn.focus({preventScroll:true});btn.onclick=()=>nav(()=>{G.i++;G.i<7?show():end()})}
 function show(){const p=G.qs[G.i];
- paint(`<div class="q"><small>Prompt ${G.i+1} of 7</small><div class="pips" aria-hidden="true">${G.qs.map((_,n)=>`<i class="${n<G.i?'d':n===G.i?'c':''}"></i>`).join('')}</div><div class="tw" id="tw"><div class="tt"><i id="tb"></i></div><span id="tn">${G.TL/1000}s</span></div><h2 id="qh">${esc(p.q)}</h2><input id="a" aria-labelledby="qh" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" placeholder="Your answer"><button id="go">Dive</button><div class="fb" id="fb" aria-live="polite"></div></div>`,true);
+ paint(`<div class="q"><small>Prompt ${G.i+1} of 7</small><div class="pips" aria-hidden="true">${G.qs.map((_,n)=>`<i class="${n<G.i?'d':n===G.i?'c':''}"></i>`).join('')}</div><div class="tw" id="tw"><div class="tt"><i id="tb"><i id="tbg"></i></i></div><span class="tp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/></svg><span id="tn">${G.TL/1000}s</span></span></div><h2 id="qh">${esc(p.q)}</h2><input id="a" aria-labelledby="qh" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" placeholder="Your answer"><button id="go">Dive</button><div class="fb" id="fb" aria-live="polite"></div></div>`,true);
  const inp=$('a');inp.focus({preventScroll:true});setTimeout(()=>inp.scrollIntoView({block:'center',behavior:RMQ.matches?'auto':'smooth'}),250);inp.onkeydown=e=>{if(e.key==='Enter')go()};$('go').onclick=go;timerStart(G.TL)}
 function shake(){shk($('a'))}
 function gain(pts){if(RMQ.matches)return;const g=document.createElement('span');g.className='gain';g.textContent='+'+pts+' m';g.addEventListener('animationend',()=>g.remove());document.querySelector('.meta').appendChild(g)}
