@@ -10,7 +10,7 @@ Seven prompts. The rarer your answer, the deeper you sink. Solo mode, live multi
 
 ```bash
 npm install
-cp .env.example .env      # then put your ANTHROPIC_API_KEY in it
+cp .env.example .env      # then put your GEMINI_API_KEY in it
 export $(cat .env | xargs) && npm start
 ```
 Open http://localhost:3000. Without an API key the game still runs but uses a weak offline check (every non-gibberish answer scores the same).
@@ -22,12 +22,14 @@ It must be a host that keeps a Node process running (WebSockets). Static-only ho
 **Render (easiest):**
 1. Push this folder to a GitHub repo.
 2. New > Web Service > pick the repo. Build command `npm install`, start command `npm start`.
-3. Add environment variables: `ANTHROPIC_API_KEY`, optionally `ANTHROPIC_MODEL`.
+3. Add environment variables: `GEMINI_API_KEY` (free key from https://aistudio.google.com/apikey, no card) or `ANTHROPIC_API_KEY` (paid). Optionally `GEMINI_MODEL` / `ANTHROPIC_MODEL`.
 4. For a leaderboard that survives redeploys, add a persistent disk (e.g. mounted at `/data`) and set `DATA_DIR=/data`.
 
 Put it behind HTTPS (Render and Railway do this automatically). The client switches to `wss://` on its own.
 
 ## Costs and safety
+
+- The Gemini free tier is rate limited (roughly 10 requests per minute on some models). If it is exceeded, answers fall back to the weak offline check until the limit resets.
 
 - Each answer is one small API call. Results are cached per prompt and answer, and each IP is limited to 90 answers per minute and 20 new games per minute.
 - Set a monthly spend limit on your Anthropic key.
