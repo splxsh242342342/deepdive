@@ -209,6 +209,16 @@ const dailyInfo = uid => { const d = today(), s = scores[uid]; const done = !!s 
 const app = express();
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '4kb' }));
+// invite links get their own preview text in chat apps (they read the page's og: tags)
+app.get('/', (req, res, next) => {
+  const code = String(req.query.room || '').toUpperCase();
+  if (!/^[A-Z]{4}$/.test(code)) return next();
+  fs.readFile(path.join(__dirname, 'public', 'index.html'), 'utf8', (err, html) => {
+    if (err) return next();
+    res.type('html').send(html.replace('<meta property="og:title" content="Deepdive">', `<meta property="og:title" content="Join my Deepdive room (${code})">`)
+      .replace('<meta property="og:description" content="Seven prompts. The rarer your answer, the deeper you sink. A daily word game.">', '<meta property="og:description" content="Tap to join the room, pick a name and race through the same prompts. The rarer your answer, the deeper you sink.">'));
+  });
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 const hits = new Map();
