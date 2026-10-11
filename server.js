@@ -198,10 +198,19 @@ function saveScore(g) { // only the daily dive is ranked; practice and multiplay
   if (g.saved || g.answers.length < g.prompts.length || !g.day) return;
   g.saved = true;
   const o = scores[g.uid] || {}, d = g.day, streak = o.lastDaily === dayBefore(d) ? (o.streak || 0) + 1 : o.lastDaily === d ? (o.streak || 1) : 1;
-  scores[g.uid] = { name: g.name, best: Math.max(o.best || 0, g.total), day: d, dayBest: g.total, games: (o.games || 0) + 1, prompts: g.prompts,
+  scores[g.uid] = { ...o, name: g.name, best: Math.max(o.best || 0, g.total), day: d, dayBest: g.total, games: (o.games || 0) + 1, prompts: g.prompts,
     log: g.answers.map(x => [x.a, x.pts, x.rarity, x.krill ? 1 : 0, x.k || '']), lastDaily: d, streak, bestStreak: Math.max(o.bestStreak || 0, streak),
     sum: (o.sum || 0) + g.total, krills: (o.krills || 0) + g.answers.filter(x => x.krill).length };
   persist(g.uid);
+}
+/* accounts: your id lives in the browser; an account code brings it back on another device or after the browser forgets it */
+const ADJ = 'coral misty glowing salty quiet tidal azure silver drifting sunken frosty golden velvet amber lunar hidden'.split(' ');
+const NOUN = 'squid krill otter manta eel reef pearl kelp shell whale seal prawn crab cod ray dolphin'.split(' ');
+const codes = new Map(Object.entries(scores).filter(([, s]) => s.code).map(([uid, s]) => [s.code, uid]));
+function accountCode(uid) {
+  const s = scores[uid]; if (s.code) return s.code;
+  let c; do c = `${ADJ[crypto.randomInt(ADJ.length)]}-${NOUN[crypto.randomInt(NOUN.length)]}-${1000 + crypto.randomInt(9000)}`; while (codes.has(c));
+  s.code = c; codes.set(c, uid); persist(uid); return c;
 }
 const dailyInfo = uid => { const d = today(), s = scores[uid]; const done = !!s && s.day === d && s.dayBest !== undefined && !!s.log; return { day: d, num: dayNum(d), done, total: done ? s.dayBest : 0, log: done ? s.log : null, time: TIME }; };
 
@@ -234,6 +243,24 @@ app.get('/api/leaderboard', (_, res) => {
 });
 
 // where you stand, even outside the top 10
+// remember the player's id in a long-lived first-party cookie too (survives some storage clean-ups)
+app.use('/api', (req, res, next) => {
+  const u = clean(req.body?.uid, 40);
+  if (u.length >= 8 && !String(req.headers.cookie || '').includes('dd_uid=' + u)) res.cookie('dd_uid', u, { maxAge: 400 * 864e5, sameSite: 'lax', secure: req.secure, path: '/' });
+  next();
+});
+app.post('/api/code', (req, res) => {
+  const uid = clean(req.body.uid, 40); if (uid.length < 8) return res.status(400).json({ error: 'bad uid' });
+  if (!scores[uid]) scores[uid] = { name: safeName(req.body.name) };
+  res.json({ code: accountCode(uid) });
+});
+app.post('/api/restore', (req, res) => {
+  if (limited(req, 10)) return res.status(429).json({ error: 'slow down' });
+  const code = clean(req.body.code, 40).toLowerCase().replace(/\s+/g, '-'), uid = codes.get(code);
+  if (!uid) return res.status(404).json({ error: 'no such code' });
+  res.json({ uid, name: scores[uid]?.name || '' });
+});
+
 app.post('/api/rank', (req, res) => {
   const uid = clean(req.body.uid, 40), s = scores[uid], d = today();
   const place = k => { const v = k === 'best' ? s?.best : s?.day === d ? s.dayBest : 0; if (!v) return null; let n = 1; for (const o of Object.values(scores)) { const ov = k === 'best' ? o.best : o.day === d ? o.dayBest : 0; if (ov > v) n++; } return { rank: n, v }; };
