@@ -1,0 +1,226 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Deepdive</title><meta name="description" content="Seven prompts. The rarer your answer, the deeper you sink."><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🪼%3C/text%3E%3C/svg%3E"><style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--fg:#eef4ff;--mut:#9db0cc;--acc:#5ad7ff;--line:#ffffff1f;--card:#07122399;--r:16px}
+html,body{margin:0;min-height:100%;color:var(--fg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:#0a4a7a;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;transition:background 1.2s}
+#bub{position:fixed;inset:0;overflow:hidden;pointer-events:none}
+#bub i{position:absolute;bottom:-30px;border-radius:50%;border:1px solid #ffffff55;background:#ffffff14;animation:rise linear infinite}
+@keyframes rise{to{transform:translateY(-110vh) translateX(var(--dx))}}
+main{position:relative;max-width:440px;margin:0 auto;padding:28px 18px 56px}
+header{text-align:center;margin-bottom:22px}
+h1{letter-spacing:.42em;margin:0;padding-left:.42em;font-size:15px;font-weight:700}
+.krill{display:block;font-size:26px;margin:6px 0 4px;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(6px) rotate(6deg)}}
+.sub{color:var(--mut);font-size:13px}
+.hud{margin-bottom:20px}
+.bar{height:6px;background:#00000040;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#5ad7ff,#9a6bff);transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.meta{display:flex;justify-content:space-between;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-top:8px}
+#depth{font-variant-numeric:tabular-nums;color:var(--fg);font-weight:600}
+.q,.panel{background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:var(--r);padding:24px 20px;text-align:center;animation:in .5s ease both;margin-bottom:16px;box-shadow:0 8px 30px #00000033}
+@keyframes in{from{opacity:0;transform:translateY(20px)}}
+.q small{color:var(--mut);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.q h2{margin:10px 0 20px;font-size:24px;font-weight:650;line-height:1.25}
+input{width:100%;box-sizing:border-box;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:#00000040;color:var(--fg);font:inherit;font-size:17px;text-align:center;outline:none;transition:border-color .2s,box-shadow .2s}
+input::placeholder{color:#9db0cc99}
+input:focus{border-color:var(--acc);box-shadow:0 0 0 3px #5ad7ff33}
+.shake{animation:sh .4s}@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+button{margin-top:12px;width:100%;padding:14px;border:0;border-radius:12px;background:var(--acc);color:#04202e;font:inherit;font-weight:650;font-size:16px;cursor:pointer;transition:transform .15s,filter .2s}
+button:hover{filter:brightness(1.08)}button:active{transform:scale(.98)}
+button.alt{background:#ffffff14;color:var(--fg);border:1px solid var(--line)}
+button:disabled{opacity:.55;cursor:default}
+.row{display:flex;gap:8px;margin-top:12px}.row input{flex:1;min-width:0;letter-spacing:.3em}.row button{margin:0;width:auto;padding:0 24px}
+.fb{margin-top:18px;font-size:17px;min-height:56px}
+.pop{animation:pop .6s cubic-bezier(.2,1.6,.4,1)}@keyframes pop{from{transform:scale(.5);opacity:0}}
+.fb b{color:var(--acc)}.rare{text-shadow:0 0 18px #a77bff}
+.dots:after{content:'';animation:d 1s steps(4) infinite}@keyframes d{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+ul{list-style:none;padding:0;margin:12px 0 0;text-align:left}
+li{display:flex;justify-content:space-between;gap:10px;padding:10px 8px;border-bottom:1px solid var(--line);animation:in .5s ease both;font-size:14px}
+li:last-child{border-bottom:0}
+li.me{background:#5ad7ff1f;border-radius:8px;border-bottom-color:transparent}
+li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+li span:last-child{color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
+li.me span:last-child{color:var(--fg)}
+.big{font-size:52px;font-weight:800;color:var(--acc);margin:6px 0;font-variant-numeric:tabular-nums}
+.tabs{display:inline-flex;gap:2px;padding:3px;border-radius:99px;background:#00000040}
+.tabs button{margin:0;padding:7px 16px;width:auto;font-size:12px;border-radius:99px;background:transparent;color:var(--mut);border:0}
+.tabs button.on{background:var(--acc);color:#04202e}
+h3{margin:0 0 14px;font-size:12px;font-weight:650;letter-spacing:.2em;color:var(--mut)}
+.code{font-size:30px;letter-spacing:.35em;padding-left:.35em;font-weight:800;color:var(--acc)}
+.note{color:var(--mut);font-size:12px;margin-top:10px;line-height:1.4}
+#rays{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% -10%,#bfe9ff66,transparent 62%);transition:opacity 1.5s}
+#rail{position:fixed;left:16px;top:96px;bottom:96px;width:2px;border-radius:2px;background:linear-gradient(#7dffe655,#7dffe612);pointer-events:none}
+#mk2{position:absolute;left:50%;top:0;width:28px;height:40px;transform:translate(-50%,-50%);transition:top 1.4s cubic-bezier(.25,.8,.25,1)}
+#mk2.on{animation:wig 1.2s}@keyframes wig{30%{transform:translate(-50%,-50%) scale(1.3,.85)}60%{transform:translate(-50%,-50%) scale(.9,1.2)}100%{transform:translate(-50%,-50%)}}
+.jf{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 calc(5px*var(--g,1)) #3dffd0) drop-shadow(0 0 calc(14px*var(--g,1)) #4a6bff);animation:glow 2.6s ease-in-out infinite}
+@keyframes glow{50%{filter:drop-shadow(0 0 calc(9px*var(--g,1)) #8dffe8) drop-shadow(0 0 calc(24px*var(--g,1)) #7a5bff)}}
+.jf .b{transform-box:fill-box;transform-origin:50% 100%;animation:pl 2.6s ease-in-out infinite}
+@keyframes pl{50%{transform:scale(1.08,.88)}}
+.jf .t{transform-box:fill-box;transform-origin:50% 0;animation:sw 2.6s ease-in-out infinite}
+@keyframes sw{50%{transform:rotate(7deg) scaleY(1.06)}}
+.jf .l{stroke-dasharray:10 90;animation:tr 2.2s linear infinite}
+@keyframes tr{from{stroke-dashoffset:10}to{stroke-dashoffset:-90}}
+.jf .s{fill:#e2fff8;animation:tw 2s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.2}50%{opacity:1}}
+.sp{position:fixed;width:5px;height:5px;margin:-2.5px;border-radius:50%;background:radial-gradient(#eafff9,#3dffd0 60%,transparent);box-shadow:0 0 10px #3dffd0,0 0 18px #6a7bff;pointer-events:none;animation:spk 1.1s ease-out forwards}
+@keyframes spk{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+.krill .jf{width:30px;height:42px;margin:0 auto}.krill{animation:bob 3s ease-in-out infinite}
+@media(max-width:520px){#rail{left:14px}#mk2{width:22px;height:31px}}
+#bub i.f{bottom:-20px;animation-timing-function:cubic-bezier(.3,.1,.6,1);animation-iteration-count:1;background:#ffffff22}
+#zb{position:fixed;left:0;right:0;top:38%;text-align:center;font-size:28px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;pointer-events:none;opacity:0;text-shadow:0 2px 20px #000a}
+#zb.on{animation:zb 2.2s}@keyframes zb{0%{opacity:0;transform:translateY(24px)}20%,80%{opacity:1}100%{opacity:0;transform:translateY(-24px)}}
+body[data-s=home] header{display:none}
+body:not([data-s=game]):not([data-s=end]) .hud,body:not([data-s=game]):not([data-s=end]) #rail{display:none}
+.home{text-align:center;padding-top:6px;animation:in .5s ease both}
+.hero{width:84px;height:118px;margin:18px auto 16px}
+.logo{font-size:30px!important;letter-spacing:.35em!important;padding-left:.35em!important;margin:0 0 10px!important;font-weight:800!important}
+.tag{color:var(--mut);font-size:15px;line-height:1.5;margin:0 auto 24px;max-width:300px}
+.nick{margin-bottom:6px}
+details.how{margin-top:18px;color:var(--mut);font-size:13px}details.how summary{cursor:pointer;list-style:none}details.how p{line-height:1.5;margin:10px 0 0}
+.av{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;font-weight:700;font-size:13px;color:#04202e;flex:none}
+.pl li{align-items:center;justify-content:flex-start;gap:10px}.pl li .nm{flex:1;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tg{font-size:11px;padding:3px 9px;border-radius:99px;background:#ffffff1a;color:var(--mut)!important;flex:none}
+.race{background:var(--card);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:14px;display:grid;gap:8px}
+.rr{display:flex;align-items:center;gap:8px}.rr .av{width:22px;height:22px;font-size:11px}
+.rb{flex:1;height:6px;border-radius:99px;background:#00000040;overflow:hidden}
+.rb i{display:block;height:100%;background:linear-gradient(90deg,#3dffd0,#9a6bff);transition:width .8s}
+.rr b{font-size:12px;min-width:36px;text-align:right;font-variant-numeric:tabular-nums}.rr.me .rb{box-shadow:0 0 0 1px var(--acc)}
+.pod{display:flex;justify-content:center;align-items:flex-end;gap:10px;margin:16px 0 12px}
+.pc{width:30%;text-align:center}.pn{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ps{font-size:12px;color:var(--mut);margin-bottom:6px}
+.pb{display:grid;place-items:center;border-radius:10px 10px 0 0;background:linear-gradient(#5ad7ff55,#5ad7ff14);border:1px solid var(--line);border-bottom:0;font-size:26px;transition:height .8s}
+.or{color:var(--mut);font-size:12px;margin-top:20px;text-transform:uppercase;letter-spacing:.12em}
+.codebox{display:inline-block;margin:6px 0 4px;padding:8px 18px;border:1px dashed var(--line);border-radius:12px}
+button.sm{width:auto;padding:8px 18px;font-size:13px;margin-top:6px}
+.left{text-align:left}.left h3{margin-top:18px}
+#count{position:fixed;inset:0;display:grid;place-items:center;font-size:110px;font-weight:800;text-shadow:0 0 40px #3dffd0;pointer-events:none;opacity:0}
+#count.on{animation:cnt .8s}@keyframes cnt{0%{opacity:0;transform:scale(1.8)}25%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:scale(.8)}}
+#flash{position:fixed;inset:0;background:#a77bff;opacity:0;pointer-events:none}
+#flash.on{animation:fl .7s}@keyframes fl{0%{opacity:.35}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body><div id="bub"></div><div id="rays"></div><div id="rail"><span id="mk2"></span></div><div id="zb"></div><div id="count"></div><div id="flash"></div><main>
+<header><h1>DEEPDIVE</h1><span class="krill"></span><div class="sub">Seven prompts. Rare answers sink you deeper.</div></header>
+<div class="hud"><div class="bar"><i id="bar"></i></div>
+<div class="meta"><span id="zone">Surface</span><span id="depth">0 m</span></div></div>
+<div id="rm"></div><div id="box"></div>
+</main><script>
+const RAW=`a fruit:apple banana orange strawberry grape mango pineapple watermelon|an animal:dog cat lion elephant tiger horse monkey bear|a country:usa france germany england spain italy japan china canada|something in a kitchen:fridge oven knife spoon fork sink plate microwave|a colour:red blue green yellow orange purple pink black|a sport:football soccer basketball tennis baseball rugby golf cricket|a pizza topping:pepperoni cheese mushroom ham pineapple onion olives sausage|a car brand:toyota ford bmw mercedes honda audi tesla volkswagen|a vegetable:carrot potato broccoli tomato onion peas cucumber spinach|an ice cream flavour:vanilla chocolate strawberry mint caramel cookies pistachio|a city:london paris newyork tokyo berlin rome dublin sydney|a musical instrument:guitar piano drums violin flute trumpet saxophone|a school subject:maths english science history geography art pe|a superhero:batman superman spiderman ironman hulk thor wonderwoman|a board game:monopoly chess scrabble cluedo risk checkers|something in a bathroom:toilet sink shower bath mirror towel toothbrush soap|a fast food chain:mcdonalds kfc burgerking subway dominos pizzahut|a job:doctor teacher nurse police firefighter lawyer engineer|a drink:water coffee tea juice cola milk beer wine|a flower:rose tulip daisy sunflower lily orchid daffodil|something at the beach:sand sea waves towel shells umbrella bucket sun|a boy's name:john james michael jack david daniel tom liam|a mammal that lives in the sea:whale dolphin seal walrus otter orca|something you take camping:tent sleepingbag torch stove backpack|a bird|a type of tree|a farm animal|a insect|a reptile|a fish|a dinosaur|a planet or moon|a continent|a river|a mountain|a capital city|an island|a US state|a language|a currency|a famous painter|a famous scientist|a famous singer|a rock band|a movie genre|a Disney film|a Pixar character|a Harry Potter character|a video game|a Nintendo character|a social media app|a streaming service|a programming language|a tech company|a smartphone brand|a cereal|a chocolate bar|a crisp flavour|a type of pasta|a type of cheese|a type of bread|a sandwich filling|a breakfast food|a dessert|a soft drink|a cocktail|a spice|a herb|a nut|a berry|a salad ingredient|a pizza chain|a soup|a curry|a cuisine|something in a toolbox|something in a school bag|something in a garden|something in a bedroom|something in a car|something in a supermarket|something in a fridge|something at a birthday party|something at a wedding|something at Christmas|something at a zoo|something at an airport|something at a gym|something at a campsite|something at a funfair|something you find in a desk drawer|something that is round|something that is sticky|something that is cold|something that is yellow|something that is loud|something that smells bad|something you can fold|something you can break|a piece of clothing|a type of shoe|a type of hat|a hairstyle|a type of dance|a card game|a type of boat|a type of aircraft|a mode of transport|a famous building|a wonder of the world|a dog breed|a cat breed|a famous detective|a fairy tale|a nursery rhyme character|a Greek god|a Roman emperor|a king or queen|a US president|a famous footballer|a tennis player|an Olympic sport|a winter sport|a martial art|a team mascot|a type of weather|a natural disaster|a gemstone|a metal|a chemical element|a shape|a month|a day-of-the-week activity|a type of music|a famous clown or villain|a cartoon character|a TV sitcom|a children's TV show|a type of doctor|a profession that uses a uniform|a hobby|a phobia|a type of pet|a school sport|a lunch box item|a type of phone app|a type of sushi|a pastry|a biscuit|a sweet or candy|a type of noodle|a pie filling|a cake flavour|a sauce|a condiment|a fruit juice|a hot drink|a type of coffee|a type of tea|a smoothie ingredient|a burger topping|a taco filling|a stir fry ingredient|a Christmas dinner item|a Halloween sweet|a breakfast cereal brand|a street food|a rice dish|a BBQ food|a picnic food|a potato dish|an egg dish|a pancake topping|something you put on toast|a lunch meat|a seafood|a Mexican dish|an Italian dish|a French dish|a Chinese dish|an Indian dish|a Japanese dish|a Thai dish|a Spanish dish|a Greek dish|an Irish dish|a type of sausage|a salad dressing|a type of apple|a citrus fruit|a tropical fruit|a stone fruit|a root vegetable|a leafy green|a type of bean|a type of mushroom|a type of pepper|a dried fruit|a type of shark|a big cat|a primate|a type of bear|a type of whale|a marsupial|an amphibian|a snake|a spider|a butterfly or moth|a bug you find in a garden|a bird of prey|a flightless bird|a water bird|a songbird|a nocturnal animal|an animal with stripes|an animal with spots|an Arctic animal|a desert animal|a jungle animal|an animal in Australia|an animal in Africa|an extinct animal|a baby animal|an animal that hibernates|a rodent|a type of deer|a type of horse|a type of cloud|a type of rock|a seashell|a European country|an Asian country|an African country|a South American country|a Caribbean island|a city in Spain|a city in Italy|a city in Germany|a city in France|a city in the UK|a city in Ireland|a city in the USA|a city in Canada|a city in Australia|a city in China|a city in India|a lake|a sea or ocean|a desert|a volcano|a waterfall|a national park|a mountain range|a famous bridge|a famous tower|a famous museum|a famous castle|a famous cathedral|a famous stadium|a famous beach|a ski resort|a theme park|an airport|a capital in Africa|a capital in Asia|an Irish county|an English county|a Canadian province|an Australian state|a Greek island|a Marvel character|a DC villain|a Star Wars character|a Lord of the Rings character|a Disney princess|a Disney villain|a Simpsons character|a Friends character|a Pokemon|a Mario Kart character|a Zelda character|a Minecraft mob|a Sonic character|a video game console|a video game genre|a mobile game|a chess piece|a Monopoly property|a Cluedo weapon|a Lego theme|a toy brand|a children's book|a Roald Dahl book|a Dr Seuss book|a Shakespeare play|a Shakespeare character|a Jane Austen novel|a Dickens novel|a poet|a novelist|a playwright|a comic book|an anime|a Studio Ghibli film|a Christmas movie|a horror movie|a romantic comedy|a sci-fi film|a Tom Hanks film|a Spielberg film|an animated film|an actor|an actress|a comedian|a TV host|a reality TV show|a cooking show|a crime drama|a Muppet|a Sesame Street character|a Beatles song|a Queen song|a pop star|a rapper|a female singer|a boy band|a girl group|a country singer|a jazz musician|a classical composer|an opera|a Broadway musical|a famous guitarist|a music festival|a music genre|a ballet|an orchestra instrument|a brass instrument|a woodwind instrument|a string instrument|a percussion instrument|a football club|a Premier League team|a Spanish football team|a basketball team|an NFL team|a baseball team|a hockey team|a rugby team|a tennis grand slam|a golf course|a golfer|an athletics event|a swimming stroke|a gymnastics apparatus|a yoga pose|a gym exercise|a piece of gym equipment|a cycling race|a racing driver|a Formula 1 team|a boxer|a basketball player|a baseball position|a football position|a cricket term|a golf term|a tennis term|a sports trophy|an Olympic city|an extreme sport|a water sport|a winter Olympic sport|a racket sport|a team sport|a casino game|a playground game|a party game|a type of puzzle|a carnival game|a type of chair|a piece of furniture|a household appliance|a cleaning product|a kitchen utensil|a type of knife|a type of cup|a type of glass|a baking ingredient|a baking tool|a power tool|a hand tool|a stationery item|a school supply|an office item|a type of pen|a type of bag|a type of bottle|a type of lamp|a type of clock|something in a handbag|something in a wallet|something in your pocket|something in a first aid kit|something in an attic|something in a garage|something in a shed|something in a living room|something in a classroom|something in a hospital|something in a library|something in a restaurant|something in a hotel room|something in a cinema|something in a park|something in a playground|something in a pencil case|something in a suitcase|something on a pirate ship|something in a circus|something in outer space|something in a castle|something in a forest|something in the ocean|something in the sky|something on a farm|something on a building site|something at the dentist|something at a barbecue|something at a concert|something at a football match|something at a market|something at a sleepover|a type of coat|a type of trousers|a type of dress|a fashion brand|a luxury brand|a sportswear brand|a piece of jewellery|a cosmetic product|a hair colour|a shade of blue|a shade of red|a shade of green|a shade of pink|a 3D shape|a mathematical term|a unit of measurement|a unit of time|an inventor|an invention|a famous explorer|an astronaut|a constellation|a dwarf planet|a type of energy|a branch of science|a part of the body|a bone|an organ|a vitamin|a type of medicine|an emotion|a part of a plant|a gas|a web browser|a search engine|a messaging app|a computer brand|a laptop brand|a TV brand|a camera brand|a headphone brand|an operating system|a computer part|an emoji|a YouTuber|a streamer|a podcast|an online store|a delivery app|an AI chatbot|a famous tech founder|a robot from a film|a Roman god|a Norse god|an ancient civilization|a British monarch|an Irish writer|an Irish musician|an Irish landmark|a Dublin landmark|a GAA sport|a holiday|a festival|a Halloween costume|a Christmas song|a Christmas decoration|a Christmas gift|a birthday gift|an emergency vehicle|a type of truck|a type of train|a type of bike|a motorbike brand|a type of plane|a type of ship|a car part|a road sign|a college subject|a university degree|a school club|a type of scientist|a type of engineer|a medical specialist|a trade job|a hospital job|a job in a restaurant|a job in a film|a job in a school|a job at an airport|a job outdoors|a dream job|a season|a day of the week|a time of day|a zodiac sign|a Chinese zodiac animal|a birthstone|a superstition|a tradition|a good habit|a bad habit|a thing people collect|a New Year's resolution|a talent|a superpower|a mythical creature|a monster|a wizard|a dragon|a type of sword|a part of a castle|a medieval job|a type of dinosaur|a famous pirate|a famous dog|a famous cat|a famous horse|a fictional city|a fictional school|a fictional detective|a fictional villain|a sidekick|a villain's lair|a magical item|a fairy|a type of cheese on pizza|a type of ice lolly|a milkshake flavour|a type of crisp|a snack at the cinema|a lunchbox snack|a sweet shop sweet|a hot sauce|a soup flavour|a type of curry|a type of bread roll|a type of cake|a type of biscuit|a Greek letter|a type of triangle|a type of tree in Europe|a type of leaf|a wild flower|a garden tool|a houseplant|a herb garden plant|a type of grass|a tropical bird|a sea creature|a deep sea creature|a shellfish|a freshwater fish|a type of frog|a type of lizard|a type of turtle|a pet bird|a pet fish|a small pet|a dog trick|a cat behaviour|a farm vehicle|a farm building|a farm crop|a country with a monarchy|a country that is an island|a landlocked country|a country with a desert|a very cold country|a very hot place|a river in Europe|a river in Africa|a river in Asia|a famous street|a famous square|a Wonder of the modern world|a mountain in Europe|a famous skyscraper|a type of building|a type of house|a room in a house|a type of shop|a type of restaurant|a type of bar|a type of hotel|a type of school|a type of road|a type of bridge|a type of bike lock|something you plug in|something with a screen|something with wheels|something with wings|something with legs|something with a handle|something with a lid|something with buttons|something that glows|something that flies|something that floats|something that spins|something that bounces|something that melts|something that is soft|something that is hard|something that is sharp|something that is hot|something that is green|something that is red|something that is blue|something that is white|something that is black|something that is orange|something that is purple|something that is pink|something that is brown|something that is shiny|something that is rough|something that is very big|something that is very small|something that is very old|something that is very fast|something that is very slow|something that is very expensive|something that is very loud|something that is sweet|something that is sour|something that is salty|something that is spicy|something that is crunchy|something that is wet|something that is dry|something that is heavy|something that is light|something you wear|something you eat for breakfast|something you eat at the cinema|something you drink when ill|something you do on holiday|something you do at the weekend|something you do when bored|something you do before bed|something you do in the morning|something you do at school|something you do in the rain|something you do in the snow|something you do at the beach|something you do at a party|something you do on a first date|something you do to relax|something you do to stay fit|something you buy at a pharmacy|something you buy at a hardware store|something you buy at a bakery|something you buy at a bookshop|something you buy at a petrol station|something you buy at a newsagent|something you buy at a toy shop|something you buy at a pet shop|something you buy at an airport`;
+const POOL=RAW.split('|').map(s=>{const[q,l]=s.split(':');return{q:'Name '+q,l:l?l.split(' '):null}});
+const Z=[[0,'Surface'],[150,'Sunlight zone'],[300,'Twilight zone'],[450,'Midnight zone'],[600,'The abyss'],[750,'The trench'],[850,'One in a krillion']],MAX=875;
+let saveMsg='',curRound=0,G=null,S=null,DB=null,US=null,RM=null,uid=null,room=null,roomCode='',busy=false,shown=0,LB=[],tab='all',peers=[],nick='',unsubP=null;
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+try{nick=localStorage.getItem('dd_nick')||''}catch(e){}
+const bub=$('bub');for(let n=0;n<22;n++){const b=document.createElement('i'),s=4+Math.random()*14;b.style.cssText=`left:${Math.random()*100}%;width:${s}px;height:${s}px;--dx:${Math.random()*60-30}px;animation-duration:${6+Math.random()*10}s;animation-delay:-${Math.random()*14}s`;bub.appendChild(b)}
+function zone(t){let z=Z[0][1];for(const[a,n]of Z)if(t>=a)z=n;return z}
+function tween(from,to,el,suf){const t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/1100),e=1-Math.pow(1-k,3);el.textContent=Math.round(from+(to-from)*e)+suf;if(k<1)requestAnimationFrame(f)})(t0)}
+function hud(){const t=G?G.tot:0,k=Math.min(1,t/MAX),m=(a,b)=>Math.round(a+(b-a)*k);
+ document.body.style.background=`linear-gradient(rgb(${m(10,2)},${m(74,6)},${m(122,16)}),rgb(${m(2,0)},${m(13,2)},${m(28,6)}))`;
+ $('bar').style.width=k*100+'%';$('rays').style.opacity=1-k;document.documentElement.style.setProperty('--g',(0.7+k*1.4).toFixed(2));
+ $('mk2').style.top=k*100+'%';
+ if(t>shown)dive(t-shown);
+ tween(shown,t,$('depth'),' m');shown=t;const zn=zone(t);
+ if($('zone').textContent!==zn){$('zone').textContent=zn;if(t>0)banner(zn)}}
+function sparkle(){const r=$('mk2').getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+ for(let i=0;i<14;i++){const e=document.createElement('i');e.className='sp';const a=Math.random()*6.28,d=30+Math.random()*50;
+  e.style.cssText=`left:${cx}px;top:${cy}px;--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d-20}px;animation-delay:${Math.random()*.25}s`;
+  e.addEventListener('animationend',()=>e.remove());document.body.appendChild(e)}}
+function dive(d){sparkle();const dv=$('mk2');dv.classList.remove('on');void dv.offsetWidth;dv.classList.add('on');
+ const n=Math.min(36,8+Math.round(d/4)),b=$('bub');
+ for(let i=0;i<n;i++){const e=document.createElement('i'),s=4+Math.random()*16;e.className='f';
+  e.style.cssText=`left:${Math.random()*100}%;width:${s}px;height:${s}px;--dx:${Math.random()*80-40}px;animation:rise ${.8+Math.random()*1.1}s ${Math.random()*.4}s both`;
+  e.addEventListener('animationend',()=>e.remove());b.appendChild(e)}}
+function banner(n){const z=$('zb');z.textContent=n;z.classList.remove('on');void z.offsetWidth;z.classList.add('on')}
+/* ---------- seeded picks ---------- */
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function pick(seed){const r=rng(hash(seed)),a=[...POOL.keys()];for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,7).map(i=>POOL[i])}
+/* ---------- screens ---------- */
+function scr(n){document.body.dataset.s=n}
+const av=n=>`<span class="av" style="background:hsl(${hash(String(n))%360} 75% 62%)">${esc(String(n).slice(0,1).toUpperCase())}</span>`;
+const shk=e=>{e.classList.remove('shake');void e.offsetWidth;e.classList.add('shake')};
+function name(){const n=$('nk');nick=((n&&n.value.trim())||nick||'Krill'+(100+Math.floor(Math.random()*900))).slice(0,16);try{localStorage.setItem('dd_nick',nick)}catch(e){}return nick}
+function leave(){if(room){try{room.leave()}catch(e){}room=null}if(unsubP){unsubP();unsubP=null}roomCode='';curRound=0;peers=[]}
+function home(){leave();G=null;shown=0;hud();$('rm').innerHTML='';scr('home');
+ $('box').innerHTML=`<div class="home"><div class="hero">${JF}</div><h1 class="logo">DEEPDIVE</h1><p class="tag">Seven prompts. The rarer your answer, the deeper you sink.</p><input id="nk" class="nick" maxlength="16" placeholder="Your nickname" value="${esc(nick)}"><button id="solo">Solo dive</button><button id="mp" class="alt">Multiplayer</button><button id="lbb" class="alt">Leaderboard</button><details class="how"><summary>How to play</summary><p>Answer each prompt with the first real thing that comes to mind. Common answers barely count. Rare but genuine answers sink you deeper. Reach the abyss.</p></details></div>`;
+ $('solo').onclick=async()=>{name();try{const r=await api('/api/game',{uid:UID,name:nick});start(r.prompts.map(q=>({q})),r.gameId)}catch(e){$('solo').textContent='Server unavailable, try again'}};
+ $('mp').onclick=()=>{name();mpHub()};$('lbb').onclick=()=>{name();lbScreen()}}
+function mpHub(){scr('mp');$('rm').innerHTML='';
+ $('box').innerHTML=`<div class="q"><h2>Multiplayer</h2><p class="note" style="margin:-8px 0 18px">Race friends through the same seven prompts.</p><button id="mk" style="margin-top:0">Create room</button><div class="or">or join with a code</div><div class="row"><input id="cd" maxlength="4" placeholder="CODE" style="text-transform:uppercase"><button id="jn" class="alt">Join</button></div><div class="note" id="mn">${RM?'':'Rooms need a signed-in claude.ai view.'}</div><button class="alt" id="bk">Back</button></div>`;
+ $('mk').onclick=()=>joinRoom(Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random()*24)]).join(''),true);
+ $('jn').onclick=()=>{const c=$('cd').value.trim().toUpperCase();if(c.length!==4)shk($('cd'));else joinRoom(c,false)};
+ $('bk').onclick=home}
+async function joinRoom(c,host){
+ if(!RM||!RM.join){$('mn').textContent='Rooms are unavailable here.';return}
+ $('mn').textContent='Joining…';
+ try{room=await RM.join('r'+c,{code:c,host:!!host,name:nick})}catch(e){room=null;$('mn').textContent='Could not join room.';return}
+ roomCode=c;curRound=0;peers=[];unsubP=room.onPeers(ch=>{peers=ch.peers;roomTick()});
+ room.presence({name:nick,host:!!host,score:0,q:0,done:false,go:0});scr('lobby');drawLobby()}
+const viewers=()=>peers.filter(p=>p.kind==='viewer'&&p.presence&&p.presence.name!==undefined);
+const me=()=>viewers().find(p=>p.isMe&&p.sameTab);
+function isHost(){const v=viewers(),m=me();if(!m)return false;const hs=v.filter(p=>p.presence.host);return hs.length?hs.some(p=>p.peer===m.peer):v.map(p=>p.peer).sort()[0]===m.peer}
+function roomTick(){if(!room)return;const s=document.body.dataset.s,g=Math.max(0,...viewers().map(p=>+p.presence.go||0));
+ if(g&&g!==curRound&&(s==='lobby'||s==='end')){startRound(g);return}
+ if(s==='lobby')drawLobby();else if(s==='game')drawRace();else if(s==='end')drawResults()}
+function drawLobby(){const v=viewers(),host=isHost();
+ $('box').innerHTML=`<div class="q left"><div style="text-align:center"><small>Room code</small><br><div class="codebox"><span class="code">${esc(roomCode)}</span></div><br><button class="alt sm" id="cp">Copy invite</button></div><h3>PLAYERS (${v.length})</h3><ul class="pl">${v.map(p=>`<li>${av(p.presence.name)}<span class="nm">${esc(String(p.presence.name).slice(0,16))}</span>${p.presence.host?'<span class="tg">HOST</span>':''}${p.isMe&&p.sameTab?'<span class="tg">YOU</span>':''}</li>`).join('')}</ul>
+ <div class="note" style="text-align:center">${host?(v.length<2?'Waiting for friends to join…':'Everyone here? Start when ready.'):'Waiting for the host to start…'}</div>${host?'<button id="st">Start dive</button>':''}<button class="alt" id="lv">Leave room</button></div>`;
+ $('cp').onclick=()=>{try{navigator.clipboard.writeText('Join my Deepdive room with code '+roomCode);$('cp').textContent='Copied'}catch(e){$('cp').textContent=roomCode}};
+ if(host)$('st').onclick=()=>room.presence({go:Date.now(),score:0,q:0,done:false});
+ $('lv').onclick=home}
+async function startRound(g){curRound=g;room.presence({score:0,q:0,done:false});$('rm').innerHTML='';
+ const c=$('count');for(const n of['3','2','1','GO']){c.textContent=n;c.classList.remove('on');void c.offsetWidth;c.classList.add('on');await new Promise(r=>setTimeout(r,n==='GO'?500:800))}
+ if(room&&curRound===g){if(room.prompts){start(room.prompts.map(q=>({q})),room.gid);drawRace()}}}
+function drawRace(){if(!room)return;const v=viewers().sort((a,b)=>(+b.presence.score||0)-(+a.presence.score||0));
+ $('rm').innerHTML=`<div class="race">${v.map(p=>{const x=p.presence,sc=+x.score||0;return `<div class="rr ${p.isMe&&p.sameTab?'me':''}">${av(x.name)}<div class="rb"><i style="width:${Math.min(100,sc/MAX*100)}%"></i></div><b>${sc}</b></div>`}).join('')}</div>`}
+function drawResults(){$('rm').innerHTML='';const v=viewers().sort((a,b)=>(+b.presence.score||0)-(+a.presence.score||0)),pend=v.filter(p=>!p.presence.done).length,top=v.slice(0,3),hs=[100,76,56];
+ $('box').innerHTML=`<div class="q"><small>${pend?'Others still diving…':'Final results'}</small><h2>${pend?'Race in progress':'Dive complete'}</h2><div class="pod">${[1,0,2].filter(i=>top[i]).map(i=>{const x=top[i].presence;return `<div class="pc"><div class="pn">${esc(String(x.name).slice(0,12))}</div><div class="ps">${+x.score||0} m</div><div class="pb" style="height:${hs[i]}px">${['🥇','🥈','🥉'][i]}</div></div>`}).join('')}</div>
+ <ul class="pl">${v.map((p,i)=>`<li class="${p.isMe&&p.sameTab?'me':''}"><span class="tg" style="min-width:18px;text-align:center">${i+1}</span>${av(p.presence.name)}<span class="nm">${esc(String(p.presence.name).slice(0,16))}</span><span class="tg">${+p.presence.score||0} m${p.presence.done?'':' …'}</span></li>`).join('')}</ul><div class="note">${esc(saveMsg)}</div>
+ ${isHost()?`<button id="rm2" ${pend?'disabled':''}>Rematch</button>`:'<div class="note">The host can start a rematch.</div>'}<button class="alt" id="lv">Leave room</button></div>`;
+ if(isHost())$('rm2').onclick=()=>room.presence({go:Date.now()});
+ $('lv').onclick=home}
+function start(qs,gid){scr('game');G={qs,gid,i:0,tot:0,log:[]};shown=0;hud();show()}
+function show(){const p=G.qs[G.i];$('box').innerHTML=`<div class="q"><small>Prompt ${G.i+1} of 7</small><h2>${esc(p.q)}</h2><input id="a" autocomplete="off" placeholder="Your answer"><button id="go">Dive</button><div class="fb" id="fb"></div></div>`;
+ const inp=$('a');inp.focus();inp.onkeydown=e=>{if(e.key==='Enter')go()};$('go').onclick=go}
+function shake(){const i=$('a');i.classList.remove('shake');void i.offsetWidth;i.classList.add('shake')}
+async function go(){if(busy)return;const inp=$('a'),v=inp.value.trim(),p=G.qs[G.i];if(v.length<2){shake();return}
+ busy=true;$('go').disabled=true;$('fb').innerHTML='<span class="dots">Checking</span>';
+ let r;try{r=await api('/api/answer',{gameId:G.gid,i:G.i,answer:v})}catch(e){busy=false;$('go').disabled=false;$('fb').textContent='Connection problem. Try again.';return}
+ busy=false;$('go').disabled=false;
+ if(!r.valid){shake();$('fb').textContent="That's not a real answer. Try again.";return}
+ const pts=r.pts,lab=r.rarity<20?'Everyone says that':r.rarity<50?'Fairly common':r.rarity<80?'Uncommon':'Deep cut!';
+ inp.disabled=true;G.tot+=pts;G.log.push([v,pts,r.rarity]);hud();
+ if(room)room.presence({score:G.tot,q:G.i+1});
+ $('fb').innerHTML=`<div class="pop ${r.rarity>=80?'rare':''}">${lab} <b>+${pts} m</b><br><small style="color:var(--mut)">${esc(r.note||'')}</small></div>`;
+ if(r.rarity>=80){const f=$('flash');f.classList.remove('on');void f.offsetWidth;f.classList.add('on')}
+ $('go').textContent=G.i<6?'Next':'See result';$('go').onclick=()=>{G.i++;G.i<7?show():end()}}
+async function saveScore(t){try{const r=await api('/api/finish',{gameId:G.gid});return r.message}catch(e){return'Could not post score.'}}
+async function end(){const share=`Deepdive: ${G.tot} m (${zone(G.tot)})\n`+G.log.map(l=>l[2]>=80?'🟪':l[2]>=50?'🟦':'⬜').join('');
+ if(room){room.presence({score:G.tot,q:7,done:true});saveMsg='Posting score…';saveScore(G.tot).then(m=>{saveMsg=m;if(room&&document.body.dataset.s==='end')drawResults()});scr('end');drawResults();return}
+ scr('end');
+ $('box').innerHTML=`<div class="q"><small>You reached</small><div class="big" id="bt">0 m</div><h2>${zone(G.tot)}</h2><ul>${G.log.map((l,n)=>`<li style="animation-delay:${n*.12}s"><span>${esc(G.qs[n].q.replace('Name ',''))}: ${esc(l[0])}</span><span>${l[1]} m</span></li>`).join('')}</ul><div class="note" id="sv">Posting score…</div><button id="sh">Copy result</button><button id="re" class="alt">Back to menu</button></div>`;
+ tween(0,G.tot,$('bt'),' m');
+ $('sh').onclick=()=>{try{navigator.clipboard.writeText(share);$('sh').textContent='Copied'}catch(e){$('sh').textContent='Copy failed'}};
+ $('re').onclick=home;
+ const m=await saveScore(G.tot);const sv=$('sv');if(sv)sv.textContent=m}
+/* ---------- leaderboard ---------- */
+async function lbScreen(){scr('lb');$('rm').innerHTML='';let d={all:[],day:[]};
+ try{d=await(await fetch('/api/leaderboard')).json()}catch(e){}
+ const rows=d[tab]||[];
+ $('box').innerHTML=`<div class="q"><h2>Leaderboard</h2><div class="tabs"><button id="t1" class="${tab==='all'?'on':''}">All-time</button><button id="t2" class="${tab==='day'?'on':''}">Today</button></div><ul class="pl">${rows.map((r,i)=>`<li class="${r.id===UID.slice(0,6)?'me':''}"><span class="tg" style="min-width:18px;text-align:center">${i+1}</span>${av(r.name)}<span class="nm">${esc(String(r.name).slice(0,16))}</span><span class="tg">${r.v} m</span></li>`).join('')||'<li><span>No scores yet. Be the first!</span></li>'}</ul><button class="alt" id="bk">Back</button></div>`;
+ $('t1').onclick=()=>{tab='all';lbScreen()};$('t2').onclick=()=>{tab='day';lbScreen()};$('bk').onclick=home}
+/* ---------- init ---------- */
+const JF=`<svg class="jf" viewBox="0 0 40 56"><path class="b" d="M5 26C5 6 35 6 35 26Q30 22 25 26Q20 22 15 26Q10 22 5 26Z" fill="#2fe8c026" stroke="#7dffe6" stroke-width="1.4"/><path class="b" d="M12 24C12 12 28 12 28 24M20 9V24" fill="none" stroke="#7dffe680" stroke-width=".8"/><circle class="s" cx="11" cy="21" r="1.5" style="animation-delay:-0.0s"/><circle class="s" cx="16" cy="16" r="1.5" style="animation-delay:-0.4s"/><circle class="s" cx="20" cy="12" r="1.5" style="animation-delay:-0.8s"/><circle class="s" cx="24" cy="16" r="1.5" style="animation-delay:-1.2000000000000002s"/><circle class="s" cx="29" cy="21" r="1.5" style="animation-delay:-1.6s"/><g class="t" style="animation-delay:0s"><path d="M12 26Q9 36 13 44T11 54" fill="none" stroke="#7dffe644" stroke-width="1.3" stroke-linecap="round"/><path class="l" pathLength="100" style="animation-delay:0.0s" d="M12 26Q9 36 13 44T11 54" fill="none" stroke="#7dffe6" stroke-width="2" stroke-linecap="round"/></g><g class="t" style="animation-delay:-0.7s"><path d="M18 26Q15 38 19 46T17 55" fill="none" stroke="#9d8bff44" stroke-width="1.3" stroke-linecap="round"/><path class="l" pathLength="100" style="animation-delay:-1.0499999999999998s" d="M18 26Q15 38 19 46T17 55" fill="none" stroke="#9d8bff" stroke-width="2" stroke-linecap="round"/></g><g class="t" style="animation-delay:-1.3s"><path d="M24 26Q27 36 23 45T26 55" fill="none" stroke="#7dffe644" stroke-width="1.3" stroke-linecap="round"/><path class="l" pathLength="100" style="animation-delay:-1.9500000000000002s" d="M24 26Q27 36 23 45T26 55" fill="none" stroke="#7dffe6" stroke-width="2" stroke-linecap="round"/></g><g class="t" style="animation-delay:-1.9s"><path d="M29 26Q31 35 28 43T30 53" fill="none" stroke="#9d8bff44" stroke-width="1.3" stroke-linecap="round"/><path class="l" pathLength="100" style="animation-delay:-2.8499999999999996s" d="M29 26Q31 35 28 43T30 53" fill="none" stroke="#9d8bff" stroke-width="2" stroke-linecap="round"/></g></svg>`;
+$('mk2').innerHTML=JF;document.querySelector('.krill').innerHTML=JF;
+/* ---------- network ---------- */
+let UID='';try{UID=localStorage.getItem('dd_uid')||'';if(!UID){UID=crypto.randomUUID();localStorage.setItem('dd_uid',UID)}}catch(e){UID=String(Math.random()).slice(2)+Date.now()}
+async function api(url,body){const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error(r.status);return r.json()}
+const RMAPI={join(name,o){return new Promise((resolve,reject)=>{
+ const ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');let st=null,h=null,opened=false;
+ const emit=()=>{if(!h||!st)return;h({peers:st.players.map(p=>({peer:p.id,kind:'viewer',isMe:p.id===st.you,sameTab:p.id===st.you,presence:{name:p.name,score:p.score,q:p.q,done:p.done,host:p.host,go:st.go}}))})};
+ const room={prompts:null,gid:null,presence(p){if(p&&p.go&&ws.readyState===1)ws.send(JSON.stringify({t:'start'}))},onPeers(f){h=f;emit();return()=>{h=null}},leave(){try{ws.send(JSON.stringify({t:'leave'}))}catch(e){}ws.close()}};
+ ws.onopen=()=>ws.send(JSON.stringify({t:'join',code:o.code,name:o.name,uid:UID,create:o.host}));
+ ws.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(x){return}
+  if(m.t==='err'){if(!opened)reject(new Error(m.msg));return}
+  if(m.t==='state'){st=m;room.prompts=m.prompts||null;room.gid=m.gid||null;if(!opened){opened=true;resolve(room)}emit()}};
+ ws.onerror=()=>{if(!opened)reject(new Error('ws'))};ws.onclose=()=>{if(!opened)reject(new Error('closed'))}})}};
+RM=RMAPI;DB=true;
+home();
+</script></body></html>
