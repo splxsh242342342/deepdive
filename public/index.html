@@ -22,6 +22,17 @@ button,input{width:100%;padding:14px;border-radius:12px;border:1px solid var(--l
 @keyframes rise{to{transform:translateY(-110vh) translateX(var(--dx))}}
 #rail,#pm,#flash,.sp{display:none}
 #world{overflow:hidden;--span:520vh}
+#swim{position:fixed;inset:0;overflow:hidden;pointer-events:none}
+.sw{position:absolute;left:0;opacity:var(--o);will-change:transform;animation:swimR var(--dur) linear forwards}
+.sw.l{animation-name:swimL}
+.sw svg{display:block;width:100%;height:auto;fill:#9fe3f2}
+.sw .bob{animation:swbob var(--bob,5s) ease-in-out infinite alternate}
+@keyframes swimR{from{transform:translateX(-100%)}to{transform:translateX(100vw)}}
+@keyframes swimL{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
+@keyframes swbob{from{translate:0 -6px}to{translate:0 6px}}
+.sw.j{top:0;animation-name:drift}
+.sw.j .jf{filter:drop-shadow(0 0 6px #6ff7e180)}
+@keyframes drift{from{transform:translateY(105vh)}to{transform:translateY(-30vh)}}
 #scene,#snowF,#snowN{height:calc(100vh + var(--span) * 1.35);opacity:.5;filter:drop-shadow(0 0 3px #6ff7e1);background-image:radial-gradient(2px 2px at 40px 60px,#9ffcec 50%,transparent 51%),radial-gradient(2.2px 2.2px at 230px 260px,#c4b4ff 50%,transparent 51%);background-size:300px 340px;animation:glimmer 5s ease-in-out infinite alternate}
 @keyframes glimmer{to{opacity:.2}}
 #scene{height:calc(100vh + var(--span))}
@@ -274,7 +285,7 @@ li.hit{animation:hit 2.4s var(--ease-out)}@keyframes hit{0%,30%{background:#6ff7
 }
 @media(max-height:640px) and (max-width:520px){.hero{width:84px;height:126px}.tag{margin-bottom:16px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}#count.on{opacity:1}}
-</style></head><body><div id="sea"></div><div id="deep"></div><div id="world" aria-hidden="true"><div id="snowF"></div><div id="scene"></div><div id="snowN"></div></div><div id="bub"></div><div id="rays"></div><div id="rail"><span id="mk2"></span></div><div id="zb"></div><div id="count"></div><div id="flash"></div><div id="net" role="status">Reconnecting…</div><div class="au-ctl"><button class="au" id="sndB" aria-label="Sound effects"></button><button class="au" id="musB" aria-label="Background music"></button></div><main>
+</style></head><body><div id="sea"></div><div id="deep"></div><div id="world" aria-hidden="true"><div id="snowF"></div><div id="scene"></div><div id="snowN"></div></div><div id="swim" aria-hidden="true"></div><div id="bub"></div><div id="rays"></div><div id="rail"><span id="mk2"></span></div><div id="zb"></div><div id="count"></div><div id="flash"></div><div id="net" role="status">Reconnecting…</div><div class="au-ctl"><button class="au" id="sndB" aria-label="Sound effects"></button><button class="au" id="musB" aria-label="Background music"></button></div><main>
 <header><h1>Deepdive</h1><span class="krill"></span><div class="sub">Seven prompts. Rare answers sink you deeper.</div></header>
 <div class="hud"><span id="pm"></span><div class="bar"><i id="bar"><i id="barf"><i id="barg"></i></i></i><b data-k="0.1714" style="left:17.14%"></b><b data-k="0.3429" style="left:34.29%"></b><b data-k="0.5143" style="left:51.43%"></b><b data-k="0.6857" style="left:68.57%"></b><b data-k="0.8571" style="left:85.71%"></b><b data-k="0.9714" style="left:97.14%"></b><span class="cap" id="cap"></span></div>
 <div class="meta"><span id="zone">Surface</span><span id="depth">0 m</span></div></div>
@@ -395,7 +406,7 @@ let DAILY=null,clockIv=null;
 function clock(el){clearInterval(clockIv);const f=()=>{if(!document.body.contains(el)){clearInterval(clockIv);return}el.textContent=hms(nextDaily()-Date.now())};f();clockIv=setInterval(f,1000)}
 const dsText=d=>d&&d.done?'Done · '+d.total+' m · see result':'Same seven prompts for everyone today';
 function home(){leave();timerStop();setTimeout(()=>{notice=''},0);G=null;shown=0;hud();$('rm').innerHTML='';scr('home');
- paint(`<div class="home"><div class="hero" title="Boop">${JF}</div><h1 class="logo">Deepdive</h1><p class="tag">Seven prompts. The rarer your answer, the deeper you sink.</p>${notice?`<p class="notice" role="status">${esc(notice)}</p>`:''}<input id="nk" class="nick" maxlength="16" placeholder="Your nickname" aria-label="Your nickname" autocomplete="nickname" value="${esc(nick)}"><button id="solo" class="daily"><span class="dl">Daily dive${DAILY?' #'+DAILY.num:''}</span><span class="ds" id="ds">${dsText(DAILY)}</span></button><div class="row2"><button id="pr" class="alt">Practice</button><button id="mp" class="alt">Multiplayer</button></div><button id="lbb" class="alt">Leaderboard</button><details class="how"><summary>How to play</summary><p>Answer each prompt with the first real thing that comes to mind. Common answers barely count. Rare but genuine answers sink you deeper. Reach the abyss.</p></details></div>`,true);
+ paint(`<div class="home"><div class="hero" title="Boop">${JF}</div><h1 class="logo">Deepdive</h1><p class="tag">Seven prompts. The rarer your answer, the deeper you sink.</p>${notice?`<p class="notice" role="status">${esc(notice)}</p>`:''}<input id="nk" class="nick" maxlength="16" placeholder="Your nickname" aria-label="Your nickname" autocomplete="nickname" value="${esc(nick)}"><button id="solo" class="daily"><span class="dl">Daily dive${DAILY?' #'+DAILY.num:''}</span><span class="ds" id="ds">${dsText(DAILY)}</span></button><div class="row2"><button id="pr" class="alt">Practice</button><button id="mp" class="alt">Multiplayer</button></div><button id="lbb" class="alt">Leaderboard</button><details class="how"><summary>How to play</summary><p>Answer each prompt with the first real thing that comes to mind. Common answers barely count. Rare but genuine answers sink you deeper. Give an answer nobody has ever given and you get a Krillion.</p></details></div>`,true);
  api('/api/daily',{uid:UID}).then(d=>{DAILY=d;const b=$('solo');if(!b||b.disabled)return;b.querySelector('.dl').textContent='Daily dive #'+d.num;$('ds').textContent=dsText(d)}).catch(()=>{});
  const play=async(mode,b)=>{if(b.disabled)return;name();load(b,true);
   try{const r=await api('/api/game',{uid:UID,name:nick,mode});
@@ -405,6 +416,10 @@ function home(){leave();timerStop();setTimeout(()=>{notice=''},0);G=null;shown=0
  const hero=document.querySelector('.hero');if(hero)hero.onclick=()=>{hero.classList.remove('zap');void hero.offsetWidth;hero.classList.add('zap');AU.jelly()};
  $('solo').onclick=()=>play('daily',$('solo'));$('pr').onclick=()=>play('practice',$('pr'));
  $('mp').onclick=()=>{name();nav(mpHub)};$('lbb').onclick=()=>{name();nav(lbScreen)}}
+function invite(code){scr('mp');$('rm').innerHTML=''; // opened from an invite link
+ paint(`<div class="q"><small>You're invited</small><h2>Join room ${esc(code)}</h2><p class="note" style="margin:-8px 0 16px">Pick a name so your friends know it's you.</p><input id="nk" maxlength="16" placeholder="Your name" aria-label="Your name" autocomplete="nickname" value="${esc(nick)}"><button id="jn">Join room</button><div class="note" id="mn" aria-live="polite"></div><button class="alt" id="bk">Not now</button></div>`,true);
+ const go=()=>{name();joinRoom(code,false)};$('jn').onclick=go;$('nk').onkeydown=e=>{if(e.key==='Enter')go()};$('bk').onclick=()=>nav(home);
+ setTimeout(()=>{const n=$('nk');if(n){n.focus();n.select()}},300)}
 function mpHub(){scr('mp');$('rm').innerHTML='';
  paint(`<div class="q"><h2>Multiplayer</h2><p class="note" style="margin:-8px 0 18px">Race friends through the same prompts. The host picks how many.</p><button id="mk" style="margin-top:0">Create room</button><div class="or">or join with a code</div><div class="row"><input id="cd" maxlength="4" placeholder="CODE" aria-label="Room code" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase"><button id="jn" class="alt">Join</button></div><div class="note" id="mn" aria-live="polite"></div><button class="alt" id="bk">Back</button></div>`,true);
  $('mk').onclick=()=>joinRoom(newCode(),true);
@@ -440,10 +455,12 @@ const roundN=()=>room&&room.n||7;
 function sizePicker(){const n=roundN();return isHost()?`<div class="sz"><span>Questions per round</span><div class="chips" role="radiogroup" aria-label="Questions per round">${[3,5,7,10,15].map(k=>`<button class="chip${k===n?' on':''}" role="radio" aria-checked="${k===n}" data-n="${k}">${k}</button>`).join('')}</div></div>`:`<p class="note">${n} questions per round</p>`}
 function wireSize(){document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>{x.classList.toggle('on',x===c);x.setAttribute('aria-checked',x===c)});room.size(+c.dataset.n)})}
 function drawLobby(enter){const v=viewers(),host=isHost(),copied=$('cp')&&$('cp').dataset.done;
- paint(`<div class="q left"><div style="text-align:center"><small>Room code</small><br><div class="codebox"><span class="code">${esc(roomCode)}</span></div><br><button class="alt sm" id="cp">${copied?'Copied':'Copy invite'}</button></div><h3>Players (${v.length})</h3><ul class="pl">${v.map(p=>`<li class="${!enter&&!lobbyIds.has(p.peer)?'new':''}">${av(p.presence.name)}<span class="nm">${esc(String(p.presence.name).slice(0,16))}</span>${p.presence.away?'<span class="tg">Reconnecting…</span>':''}${p.presence.host?'<span class="tg">Host</span>':''}${p.isMe&&p.sameTab?'<span class="tg">You</span>':''}</li>`).join('')}</ul>
+ paint(`<div class="q left"><div style="text-align:center"><small>Room code</small><br><div class="codebox"><span class="code">${esc(roomCode)}</span></div><br><button class="alt sm" id="cp">${copied?'Link copied':'Copy invite link'}</button></div><h3>Players (${v.length})</h3><ul class="pl">${v.map(p=>`<li class="${!enter&&!lobbyIds.has(p.peer)?'new':''}">${av(p.presence.name)}<span class="nm">${esc(String(p.presence.name).slice(0,16))}</span>${p.presence.away?'<span class="tg">Reconnecting…</span>':''}${p.presence.host?'<span class="tg">Host</span>':''}${p.isMe&&p.sameTab?'<span class="tg">You</span>':''}</li>`).join('')}</ul>
  ${sizePicker()}<div class="note" style="text-align:center">${host?(v.length<2?'Waiting for friends to join…':'Everyone here? Start when ready.'):'Waiting for the host to start…'}</div>${host?'<button id="st">Start dive</button>':''}<button class="alt" id="lv">Leave room</button></div>`,enter);
  lobbyIds=new Set(v.map(p=>p.peer));if(copied)$('cp').dataset.done=1;wireSize();
- $('cp').onclick=()=>{try{navigator.clipboard.writeText('Join my Deepdive room with code '+roomCode);$('cp').textContent='Copied';$('cp').dataset.done=1}catch(e){$('cp').textContent=roomCode}};
+ $('cp').onclick=async()=>{const url=location.origin+'/?room='+roomCode,b=$('cp');
+  if(navigator.share&&matchMedia('(pointer:coarse)').matches){try{await navigator.share({title:'Deepdive',text:'Join my Deepdive room',url});return}catch(e){if(e.name==='AbortError')return}} // phones: the share sheet
+  try{await navigator.clipboard.writeText(url);b.textContent='Link copied';b.dataset.done=1}catch(e){b.textContent=url}};
  if(host)$('st').onclick=()=>{load($('st'),true);room.presence({go:Date.now(),score:0,q:0,done:false})};
  $('lv').onclick=()=>nav(home)}
 async function startRound(g){curRound=g;room.presence({score:0,q:0,done:false});$('rm').innerHTML='';scr('count');
@@ -509,7 +526,7 @@ async function go(){if(busy||!T)return;const inp=$('a'),btn=$('go'),v=inp.value.
  const pts=r.pts,lab=r.krill?'One in a Krillion!':r.rarity<20?'Everyone says that':r.rarity<50?'Fairly common':r.rarity<80?'Uncommon':'Deep cut!';
  inp.disabled=true;$('tw').classList.add('out');G.tot+=pts;G.log.push([v,pts,r.rarity,r.krill?1:0]);hud();gain(pts);celebrate(r);
  if(room)room.presence({score:G.tot,q:G.i+1});
- const sub=r.krill?'Nobody else has said that today.':G.mode==='daily'&&r.seen?`${r.seen} other diver${r.seen>1?'s':''} said this today`:(r.note||'');
+ const sub=r.krill?'Nobody has ever said that before.':G.mode==='daily'&&r.seen?`${r.seen} other diver${r.seen>1?'s':''} said this today`:(r.note||'');
  $('fb').innerHTML=`<div class="pop ${r.krill?'kr':r.rarity>=80?'rare':''}">${lab} <b>+${pts} m</b><br><small style="color:var(--mut)">${esc(sub)}</small></div>`;
  if(r.krill)banner('One in a Krillion');
  if(r.rarity>=80||r.krill){const f=$('flash');f.classList.toggle('gold',!!r.krill);f.classList.remove('on');void f.offsetWidth;f.classList.add('on')}
@@ -562,6 +579,26 @@ const JF=(()=>{
  const dots=[[28,40],[38,30],[50,26],[62,30],[72,40]].map(([x,y],i)=>`<circle class="s" cx="${x}" cy="${y}" r="1.7" style="animation-delay:-${i*.45}s"/>`).join('');
  return `<svg class="jf" viewBox="0 0 100 150" aria-hidden="true"><g class="bob">${tent}${arms}<g class="bell"><path class="bo" d="M12 52C12 14 88 14 88 52Q80 46 71 52Q62 46 50 52Q38 46 29 52Q20 46 12 52Z"/><path class="bi" d="M25 48C25 25 75 25 75 48"/><path class="go" d="M38 41c-6-10 6-15 8-4M62 41c6-10-6-15-8-4M44 33c0-8 12-8 12 0"/>${dots}</g></g></svg>`})();
 $('mk2').innerHTML=JF;$('pm').innerHTML=JF;document.querySelector('.krill').innerHTML=JF;
+/* ---------- creatures that swim across the background ---------- */
+(function(){const F='<path d="M22 6Q14 0 6 6Q14 12 22 6ZM7 6 0 1v10Z"/>'; // small fish, facing right
+ const T={
+  fish:{w:[18,30],face:1,dur:[26,40],svg:`<svg viewBox="0 0 22 12">${F}</svg>`},
+  school:{w:[70,110],face:1,dur:[30,46],svg:`<svg viewBox="0 0 80 40">${[[0,4],[22,0],[44,6],[12,20],[34,16],[56,22],[26,30]].map(([x,y])=>`<g transform="translate(${x} ${y})">${F}</g>`).join('')}</svg>`},
+  turtle:{w:[44,64],face:1,dur:[40,60],svg:'<svg viewBox="0 0 50 34"><ellipse cx="24" cy="17" rx="15" ry="10"/><circle cx="43" cy="15" r="5"/><path d="M14 9 4 2l14 4ZM30 9l8-8-2 10ZM14 25 4 32l14-4ZM30 25l8 8-2-10Z"/></svg>'},
+  ray:{w:[60,90],face:1,dur:[36,54],svg:'<svg viewBox="0 0 60 40"><path d="M58 20C50 14 44 4 34 2 30 12 26 16 18 18L0 20l18 2c8 2 12 6 16 16 10-2 16-12 24-18Z"/></svg>'},
+  whale:{w:[160,240],face:-1,dur:[70,95],svg:'<svg viewBox="0 0 120 40"><path d="M2 22C10 8 40 4 70 10c18 4 30 10 38 4l8-10-2 14 10 6-14-2c-10 10-30 14-60 12C28 30 6 30 2 22Z"/></svg>'}};
+ const W=[['school',30],['fish',26],['turtle',12],['ray',13],['whale',6],['jelly',13]],rnd=(a,b)=>a+Math.random()*(b-a);
+ function spawn(first){const layer=$('swim');if(!layer||RMQ.matches||document.hidden||layer.childElementCount>=4)return;
+  let r=Math.random()*100,k='fish';for(const[n,w]of W){if((r-=w)<0){k=n;break}}
+  const far=Math.random(),el=document.createElement('div');
+  if(k==='jelly'){const d=rnd(40,60);el.className='sw j';el.style.cssText=`left:${rnd(4,88)}%;width:${rnd(22,40)}px;height:${rnd(34,60)}px;--dur:${d}s;--o:${(.25+far*.2).toFixed(2)}`;el.innerHTML=JF;
+   if(first)el.style.animationDelay=-rnd(0,d*.6)+'s'}
+  else{const t=T[k],d=rnd(...t.dur)*(1.3-far*.5),dir=Math.random()<.5?1:-1;
+   el.className='sw'+(dir<0?' l':'');el.style.cssText=`top:${rnd(8,86)}vh;width:${(rnd(...t.w)*(.55+far*.6)).toFixed(0)}px;--dur:${d}s;--o:${(.14+far*.16).toFixed(2)};--bob:${rnd(4,7).toFixed(1)}s`;
+   el.innerHTML=`<div class="bob"><div style="transform:scaleX(${dir*t.face})">${t.svg}</div></div>`;
+   if(first)el.style.animationDelay=-rnd(0,d*.7)+'s'}
+  el.addEventListener('animationend',e=>{if(e.target===el)el.remove()});layer.appendChild(el)}
+ spawn(true);spawn(true);setInterval(spawn,8000)})();
 /* ---------- dive world ---------- */
 (function(){const S={
  fish:'<svg viewBox="0 0 22 12"><path d="M0 6Q8 0 16 6Q8 12 0 6ZM15 6l7-5v10Z"/></svg>',
@@ -627,5 +664,8 @@ const AUI={snd:['<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 
  mus:['<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>','<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path d="M3 3l18 18"/>']};
 function syncAu(){for(const[id,k,on]of[['sndB','snd',AU.sound],['musB','mus',AU.music]]){const b=$(id);b.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${AUI[k][on?0:1]}</svg>`;b.setAttribute('aria-pressed',on);b.title=(on?'Turn off ':'Turn on ')+(k==='snd'?'sound effects':'music')}}
 $('sndB').onclick=()=>{AU.setSound(!AU.sound);syncAu()};$('musB').onclick=()=>{AU.setMusic(!AU.music);syncAu()};syncAu();
-try{const c=sessionStorage.getItem('dd_room');if(c){name();joinRoom(c,false,true)}}catch(e){}
+{const inv=(new URLSearchParams(location.search).get('room')||'').toUpperCase();let c=null;try{c=sessionStorage.getItem('dd_room')}catch(e){}
+ if(inv)history.replaceState(null,'',location.pathname); // tidy the address bar
+ if(c&&(!inv||c===inv)){name();joinRoom(c,false,true)}  // reload while in a room: rejoin the same seat
+ else if(/^[A-Z]{4}$/.test(inv))invite(inv)}
 </script></body></html>

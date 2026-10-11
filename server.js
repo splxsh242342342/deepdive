@@ -30,22 +30,26 @@ const EPOCH = Date.UTC(2026, 9, 1); // daily dive #1
 
 /* ---------- storage ---------- */
 // scores: uid -> {name, best, day, dayBest, games, prompts, log}; counts (daily answer counts): day -> [{n, a:{answerKey:count}} per prompt], only today is kept.
+// seen: prompt -> Set of every answer key ever given to it (any day, any mode); a new key there is a Krillion.
 // With DATABASE_URL set (free Neon Postgres) both live in Postgres and survive redeploys; otherwise JSON files in DATA_DIR (local dev).
 // Everything is read once at boot and served from memory; changes are written back in batches at most once a second.
 const DB_URL = process.env.DATABASE_URL || '';
-const SCORES_FILE = path.join(DATA_DIR, 'scores.json'), COUNTS_FILE = path.join(DATA_DIR, 'answers.json');
+const SCORES_FILE = path.join(DATA_DIR, 'scores.json'), COUNTS_FILE = path.join(DATA_DIR, 'answers.json'), SEEN_FILE = path.join(DATA_DIR, 'seen.json');
 const today = () => new Date().toISOString().slice(0, 10);
 const dayNum = d => Math.round((Date.parse(d) - EPOCH) / 864e5) + 1;
 let scores = {}, counts = {}, scoresVersion = 0, db = null;
+const seen = new Map(), seenNew = []; // seenNew: [prompt, key] rows not written yet
+const addSeen = (q, k) => { let set = seen.get(q); if (!set) seen.set(q, set = new Set()); set.add(k); };
 if (DB_URL) {
   const { default: pg } = await import('pg');
   db = new pg.Pool({ connectionString: DB_URL, max: 3, idleTimeoutMillis: 30000, connectionTimeoutMillis: 15000 });
   db.on('error', e => console.error('db idle client:', e.message)); // Neon drops idle connections when it scales to zero; the pool just reconnects
   for (let tries = 1; ; tries++) {
     try {
-      await db.query('create table if not exists deepdive_scores (uid text primary key, data jsonb not null); create table if not exists deepdive_counts (day text primary key, data jsonb not null)');
+      await db.query('create table if not exists deepdive_scores (uid text primary key, data jsonb not null); create table if not exists deepdive_counts (day text primary key, data jsonb not null); create table if not exists deepdive_seen (prompt text not null, answer text not null, primary key (prompt, answer))');
       for (const r of (await db.query('select uid, data from deepdive_scores')).rows) scores[r.uid] = r.data;
       for (const r of (await db.query('select day, data from deepdive_counts where day = $1', [today()])).rows) counts[r.day] = r.data;
+      for (const r of (await db.query('select prompt, answer from deepdive_seen')).rows) addSeen(r.prompt, r.answer);
       break;
     } catch (e) { // never start with an empty leaderboard: retry, then fail the deploy so Render keeps the old one running
       console.error(`database not reachable (try ${tries}/5):`, e.message);
@@ -57,17 +61,19 @@ if (DB_URL) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   try { scores = JSON.parse(fs.readFileSync(SCORES_FILE, 'utf8')); } catch {}
   try { counts = JSON.parse(fs.readFileSync(COUNTS_FILE, 'utf8')); } catch {}
+  try { for (const [q, keys] of Object.entries(JSON.parse(fs.readFileSync(SEEN_FILE, 'utf8')))) for (const k of keys) addSeen(q, k); } catch {}
 }
 const dirty = new Set(); // uids whose score changed since the last write
 let countsDirty = false, saveTimer = null, saving = Promise.resolve();
 async function flush() {
   const d = today(); for (const k of Object.keys(counts)) if (k !== d) delete counts[k];
-  const uids = [...dirty], c = countsDirty; dirty.clear(); countsDirty = false;
-  if (!uids.length && !c) return;
+  const uids = [...dirty], c = countsDirty, rows = seenNew.splice(0); dirty.clear(); countsDirty = false;
+  if (!uids.length && !c && !rows.length) return;
   try {
     if (!db) {
       if (uids.length) await fs.promises.writeFile(SCORES_FILE, JSON.stringify(scores));
       if (c) await fs.promises.writeFile(COUNTS_FILE, JSON.stringify(counts));
+      if (rows.length) await fs.promises.writeFile(SEEN_FILE, JSON.stringify(Object.fromEntries([...seen].map(([q, set]) => [q, [...set]]))));
       return;
     }
     for (const u of uids) await db.query('insert into deepdive_scores (uid, data) values ($1, $2) on conflict (uid) do update set data = excluded.data', [u, JSON.stringify(scores[u])]);
@@ -75,15 +81,18 @@ async function flush() {
       await db.query('insert into deepdive_counts (day, data) values ($1, $2) on conflict (day) do update set data = excluded.data', [d, JSON.stringify(counts[d] || [])]);
       await db.query('delete from deepdive_counts where day <> $1', [d]);
     }
+    if (rows.length) await db.query('insert into deepdive_seen (prompt, answer) select * from unnest($1::text[], $2::text[]) on conflict do nothing', [rows.map(r => r[0]), rows.map(r => r[1])]);
   } catch (e) { // keep the changes and try again shortly
     console.error('save failed:', e.message);
-    for (const u of uids) dirty.add(u); countsDirty ||= c; queueSave(5000);
+    for (const u of uids) dirty.add(u); countsDirty ||= c; seenNew.push(...rows); queueSave(5000);
   }
 }
 const save = () => (saving = saving.then(flush)); // one write at a time, so an older snapshot never lands after a newer one
 const queueSave = (ms = 1000) => { if (!saveTimer) saveTimer = setTimeout(() => { saveTimer = null; save(); }, ms); };
 const persist = uid => { scoresVersion++; dirty.add(uid); queueSave(); };
 const persistCounts = () => { countsDirty = true; queueSave(); };
+const seen_ = q => seen.get(q) || new Set();
+const rememberAnswer = (q, k) => { addSeen(q, k); seenNew.push([q, k]); queueSave(); };
 for (const sig of ['SIGTERM', 'SIGINT']) process.once(sig, async () => { clearTimeout(saveTimer); await save(); await db?.end(); process.exit(0); }); // Render sends SIGTERM before a redeploy
 
 /* ---------- helpers ---------- */
@@ -229,15 +238,17 @@ app.post('/api/answer', async (req, res) => {
   const r = await judge(g.prompts[i], answer);
   if (!r.valid) return res.json({ valid: false });
   if (g.answers.length !== i) return res.status(409).json({ error: 'duplicate' });
-  let rarity = r.rarity, krill = false, seen = 0;
+  let rarity = r.rarity, seen = 0;
+  const k = norm(r.item || answer) || norm(answer), ever = seen_(g.prompts[i]);
+  const krill = !ever.has(k) && ever.size >= 3; // One in a Krillion: nobody has EVER given this answer to this prompt (once a few different answers exist)
+  if (!ever.has(k)) rememberAnswer(g.prompts[i], k);
   if (g.day && g.day === today()) { // real answer counts from today's divers
-    const c = ((counts[g.day] ||= [])[i] ||= { n: 0, a: {} }), k = norm(r.item || answer) || norm(answer);
+    const c = ((counts[g.day] ||= [])[i] ||= { n: 0, a: {} });
     seen = c.a[k] || 0;
     if (c.n >= 10) rarity = Math.round(rarity * 0.5 + 50 * Math.max(0, 1 - (seen / c.n) * 4));
-    krill = seen === 0 && c.n >= 3; // nobody else has said it today (needs a few divers to mean anything)
-    if (krill) rarity = Math.max(rarity, 90);
     c.a[k] = seen + 1; c.n++; persistCounts();
   }
+  if (krill) rarity = Math.max(rarity, 90);
   const pts = Math.round(5 + rarity * 1.2);
   g.answers.push({ a: answer, pts, rarity, krill }); g.total += pts;
   done();
